@@ -15,6 +15,8 @@ import MyProfileTab from './components/MyProfileTab';
 import CheerSongsTab from './components/CheerSongsTab';
 import { Calendar, Trophy, BarChart2, BookOpen, Clock, User, ShieldAlert, Home, FileText, ShoppingBag, Plus, Bell, ChevronDown, Check, Settings, ChevronLeft, Dribbble } from 'lucide-react';
 
+// 테스트
+
 export default function App() {
   // 1. 앱 주요 최상위 반응형 상태 정의부
   const [profile, setProfile] = useState<UserProfile | null>(null);
