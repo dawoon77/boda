@@ -20,7 +20,7 @@ export default function BaseballShopping({ favoriteTeam }: BaseballShoppingProps
         </div>
         <h3 className="text-lg font-bold leading-tight mt-2 font-display">
           팬 구단 유니폼 & 야구장<br />
-          프리 수령 교환 드롭!
+          프리 수령 교환 드롭
         </h3>
         <p className="text-[10px] text-zinc-400 mt-2">
           마이구단 <strong className="text-white font-bold">{favoriteTeam?.shortName}</strong> 맞춤 딜 적용 중. 직관 기록이 늘수록 추가 시크릿 마일리지가 적립됩니다.
