@@ -1,0 +1,6 @@
+{
+  "name": "KBO 직관 다이어리",
+  "description": "KBO 프로야구 직관 기록을 관리하고 실시간 중계 데이터를 확인하는 모바일 기반 직관 다이어리",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
