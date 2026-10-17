@@ -65,7 +65,7 @@ export default function TeamSelectScreen({
     <div id="team-select-container" className={`flex flex-col h-full overflow-y-auto font-sans p-6 scrollbar-thin ${COLORS.bgLight} ${COLORS.textMain} relative`}>
       {/* 프로필 수정 전용 상단 영역 헤더 바이 바 */}
       {isEditing && (
-        <div id="profile-header-bar" className="grid grid-cols-3 items-center px-6 py-4 border-b border-zinc-100 shrink-0 bg-white z-10 sticky top-0 -mx-6 -mt-6 mb-2">
+        <div id="profile-header-bar" className="grid grid-cols-3 items-center px-6 py-4 border-b border-zinc-100 shrink-0 bg-white z-10 sticky -top-6 -mx-6 -mt-6 mb-2">
           <div className="flex justify-start">
             {onCancel && (
               <button
