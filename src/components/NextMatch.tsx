@@ -9,9 +9,10 @@ interface NextMatchProps {
   matches: Match[];
   onAttendanceClick: (match: Match) => void;
   hasRecord: (matchId: string) => boolean;
+  sectionType?: 'all' | 'live' | 'upcoming';
 }
 
-export default function NextMatch({ favoriteTeam, matches, onAttendanceClick, hasRecord }: NextMatchProps) {
+export default function NextMatch({ favoriteTeam, matches, onAttendanceClick, hasRecord, sectionType = 'all' }: NextMatchProps) {
   const [liveMatch, setLiveMatch] = useState<Match | null>(null);
   const [upcomingMatch, setUpcomingMatch] = useState<Match | null>(null);
   const [completedMatch, setCompletedMatch] = useState<Match | null>(null);
@@ -114,24 +115,27 @@ export default function NextMatch({ favoriteTeam, matches, onAttendanceClick, ha
   };
 
   const choiceUpcoming = upcomingMatch || completedMatch;
+  const showLivePart = sectionType === 'all' || sectionType === 'live';
+  const showUpcomingPart = sectionType === 'all' || sectionType === 'upcoming';
 
   return (
     <div className="space-y-4">
-      {/* 1. 실시간 중계 부분: 라이브 경기가 진행 중일 때만 렌더링 */}
-      {liveMatch && liveMatch.status === 'live' && (
-        <div id="live-broadcast-box" className={`${LAYOUT.card} overflow-hidden border-zinc-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.015)] !p-0`}>
-          {/* Header */}
-          <div className="px-5 pt-5 pb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-              </span>
-              <h3 className={`${TYPOGRAPHY.headingMd} flex items-center gap-1`}>
-                실시간 경기 중계 (LIVE)
-              </h3>
+      {/* 1. 실시간 중계 부분 */}
+      {showLivePart && (
+        liveMatch && liveMatch.status === 'live' ? (
+          <div id="live-broadcast-box" className={`${LAYOUT.card} overflow-hidden border-zinc-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.015)] !p-0`}>
+            {/* Header */}
+            <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+                <h3 className={`${TYPOGRAPHY.headingMd} flex items-center gap-1`}>
+                  실시간 경기 중계 (LIVE)
+                </h3>
+              </div>
             </div>
-          </div>
 
           {/* Scores box */}
           <div className="p-4 space-y-4">
@@ -177,10 +181,10 @@ export default function NextMatch({ favoriteTeam, matches, onAttendanceClick, ha
             {/* Stadium Label */}
             <div className="text-xs text-zinc-500 flex items-center justify-between pt-1 font-semibold">
               <span className="text-zinc-600 flex items-center gap-1.5">
-                <span className="font-bold text-zinc-800">구장 | {liveMatch.stadium}</span>
+                <span className="font-bold text-zinc-800">구장 | {liveMatch.stadium || getTeamById(liveMatch.homeTeamId).stadium}</span>
               </span>
               <span className="text-xs text-zinc-400 font-semibold">
-                {liveMatch.stadium} LIVE
+                {liveMatch.stadium || getTeamById(liveMatch.homeTeamId).stadium} LIVE
               </span>
             </div>
           </div>
@@ -310,10 +314,36 @@ export default function NextMatch({ favoriteTeam, matches, onAttendanceClick, ha
             </div>
           )}
         </div>
+        ) : (
+          sectionType === 'live' && (
+            <div id="live-broadcast-empty-box" className={`${LAYOUT.card} overflow-hidden border-zinc-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.015)] p-4`}>
+              <div className="flex items-center justify-between pb-2.5 border-b border-zinc-100">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-350"></span>
+                  </span>
+                  <h3 className={`${TYPOGRAPHY.headingMd} flex items-center gap-1`}>
+                    실시간 경기 중계 (LIVE)
+                  </h3>
+                </div>
+                <span className="text-[10px] bg-zinc-100 text-zinc-500 font-bold px-2 py-0.5 rounded-full">대기 중</span>
+              </div>
+              <div className="py-2.5 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-400 shrink-0">
+                  <Radio className="w-4 h-4" />
+                </div>
+                <div className="text-xs">
+                  <p className="font-bold text-zinc-700">현재 진행 중인 실시간 경기가 없습니다</p>
+                  <p className="text-zinc-400 text-[11px] mt-0.5 font-medium">경기 시작 시 투구수, 주자 현황, 볼카운트 등이 실시간 중계됩니다.</p>
+                </div>
+              </div>
+            </div>
+          )
+        )
       )}
 
-      {/* 2. 다음 경기 일정: 실시간 중계 카드 하단에 상시 표시되며, 비시즌 시 단독 노출 */}
-      {choiceUpcoming && (
+      {/* 2. 다음 경기 일정 */}
+      {showUpcomingPart && choiceUpcoming && (
         <div id="next-match-panel" className={`${LAYOUT.card} overflow-hidden border-zinc-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.015)] !p-0`}>
           {/* Header */}
           <div id="next-match-header-badge" className="px-5 pt-5 pb-3 flex items-center justify-between">

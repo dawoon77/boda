@@ -16,7 +16,7 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json());
 
@@ -471,7 +471,7 @@ async function startServer() {
       });
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-2.5-flash",
         contents: "Find the current 2026 KBO Player leadership statistics for regular season. Provide top 5 rankings (name, team name lowercase abbreviation like kia, samsung, values) for avg, hr, rbi, era, win, sv. Response must be JSON layout matching standard database keys.",
         config: {
           tools: [{ googleSearch: {} }],

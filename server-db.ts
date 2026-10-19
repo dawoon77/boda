@@ -16,10 +16,14 @@ const dbConfig = {
   database: process.env.DB_DATABASE,
 };
 
+// in-memory mock fallback store (when MySQL is not connected or in local mode)
+let memoryTeamStandings: any[] | null = null;
+let memoryPlayerRankings: any | null = null;
+
 if (dbConfig.host && dbConfig.database) {
   isDbEnabled = true;
 } else {
-  console.log("MySQL environment variables (DB_HOST, DB_DATABASE) are missing. Running in standard local mode.");
+  console.log("MySQL environment variables (DB_HOST, DB_DATABASE) are missing. Running in standard local mode with in-memory store.");
 }
 
 export function getDbPool(): mysql.Pool | null {
@@ -33,12 +37,13 @@ export function getDbPool(): mysql.Pool | null {
         password: dbConfig.password,
         database: dbConfig.database,
         waitForConnections: true,
-        connectionLimit: 10,
+        connectionLimit: 5,
+        connectTimeout: 2000,
         queueLimit: 0,
       });
       console.log(`MySQL connection pool created for host: ${dbConfig.host}`);
     } catch (err) {
-      console.error("Failed to initialize MySQL Connection Pool:", err);
+      console.warn("Failed to initialize MySQL Connection Pool, falling back to in-memory store:", err);
       pool = null;
       isDbEnabled = false;
     }
@@ -99,6 +104,9 @@ export async function initializeDatabase() {
  * 크롤링된 구단 순위 데이터를 MySQL에 저장하거나 업데이트합니다.
  */
 export async function saveTeamStandings(standings: any[]) {
+  // Always update in-memory cache
+  memoryTeamStandings = standings;
+
   const activePool = getDbPool();
   if (!activePool) return;
 
@@ -131,7 +139,7 @@ export async function saveTeamStandings(standings: any[]) {
     }
     console.log("KBO team standings successfully written to MySQL");
   } catch (err) {
-    console.error("Failed to insert/update team standings in MySQL:", err);
+    console.warn("Failed to insert/update team standings in MySQL, continuing with in-memory:", err);
   }
 }
 
@@ -140,7 +148,7 @@ export async function saveTeamStandings(standings: any[]) {
  */
 export async function getTeamStandingsFromDb(): Promise<any[] | null> {
   const activePool = getDbPool();
-  if (!activePool) return null;
+  if (!activePool) return memoryTeamStandings;
 
   try {
     const [rows]: any = await activePool.query(`
@@ -153,15 +161,18 @@ export async function getTeamStandingsFromDb(): Promise<any[] | null> {
       return rows;
     }
   } catch (err) {
-    console.error("Failed to fetch KBO team standings from MySQL:", err);
+    console.warn("Failed to fetch KBO team standings from MySQL, returning in-memory:", err);
   }
-  return null;
+  return memoryTeamStandings;
 }
 
 /**
  * 크롤링된 선수 랭킹 데이터를 MySQL에 저장합니다.
  */
 export async function savePlayerRankings(rankings: any) {
+  // Always update in-memory cache
+  memoryPlayerRankings = rankings;
+
   const activePool = getDbPool();
   if (!activePool) return;
 
@@ -211,7 +222,7 @@ export async function savePlayerRankings(rankings: any) {
       connection.release();
     }
   } catch (err) {
-    console.error("Failed to bulk save player rankings in MySQL:", err);
+    console.warn("Failed to bulk save player rankings in MySQL, continuing with in-memory:", err);
   }
 }
 
@@ -220,7 +231,7 @@ export async function savePlayerRankings(rankings: any) {
  */
 export async function getPlayerRankingsFromDb(): Promise<any | null> {
   const activePool = getDbPool();
-  if (!activePool) return null;
+  if (!activePool) return memoryPlayerRankings;
 
   try {
     const [rows]: any = await activePool.query(`
@@ -230,7 +241,7 @@ export async function getPlayerRankingsFromDb(): Promise<any | null> {
     `);
 
     if (!rows || rows.length === 0) {
-      return null;
+      return memoryPlayerRankings;
     }
 
     // 응답할 스키마 기본 구조 생성
@@ -262,7 +273,7 @@ export async function getPlayerRankingsFromDb(): Promise<any | null> {
 
     return data;
   } catch (err) {
-    console.error("Failed to fetch KBO player rankings from MySQL:", err);
+    console.warn("Failed to fetch KBO player rankings from MySQL, returning in-memory:", err);
   }
-  return null;
+  return memoryPlayerRankings;
 }

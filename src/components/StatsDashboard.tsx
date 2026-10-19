@@ -12,6 +12,32 @@ interface StatsDashboardProps {
 export default function StatsDashboard({ favoriteTeam, records }: StatsDashboardProps) {
   const [showAllOpponents, setShowAllOpponents] = React.useState(false);
 
+  // 추출 가능한 고유 년도 목록 (과거 기록 + 기본 KBO 시즌 년도)
+  const availableYears = React.useMemo(() => {
+    const yearSet = new Set<number>();
+    yearSet.add(2026);
+    yearSet.add(2025);
+    yearSet.add(2024);
+    const currYear = new Date().getFullYear();
+    yearSet.add(currYear);
+    records.forEach(r => {
+      if (r.date) {
+        const y = parseInt(r.date.split('-')[0], 10);
+        if (!isNaN(y)) yearSet.add(y);
+      }
+    });
+    return Array.from(yearSet).sort((a, b) => b - a);
+  }, [records]);
+
+  // 선택된 년도 콤보박스 상태 (기본값: 최신 기록 년도 또는 2026)
+  const [selectedYear, setSelectedYear] = React.useState<string>(() => {
+    if (records.length > 0) {
+      const sorted = [...records].sort((a, b) => b.date.localeCompare(a.date));
+      return sorted[0].date.split('-')[0];
+    }
+    return '2026';
+  });
+
   // 캘린더 연월 상태 정렬값 초기화
   const [currentYear, setCurrentYear] = React.useState(() => {
     if (records.length > 0) {
@@ -30,6 +56,12 @@ export default function StatsDashboard({ favoriteTeam, records }: StatsDashboard
     }
     return new Date().getMonth();
   });
+
+  // 선택된 년도에 따른 필터링된 직관 기록
+  const displayedRecords = React.useMemo(() => {
+    if (selectedYear === 'all') return records;
+    return records.filter(r => r.date.startsWith(selectedYear));
+  }, [records, selectedYear]);
 
   const handlePrevMonth = () => {
     setCurrentMonth(prev => {
@@ -62,11 +94,11 @@ export default function StatsDashboard({ favoriteTeam, records }: StatsDashboard
     daysArray.push(d);
   }
 
-  // 직관 경기 결과 지배성 연산 통계
-  const totalGames = records.length;
-  const wins = records.filter(r => r.result === 'win').length;
-  const losses = records.filter(r => r.result === 'lose').length;
-  const draws = records.filter(r => r.result === 'draw').length;
+  // 직관 경기 결과 지배성 연산 통계 (선택된 년도 기준)
+  const totalGames = displayedRecords.length;
+  const wins = displayedRecords.filter(r => r.result === 'win').length;
+  const losses = displayedRecords.filter(r => r.result === 'lose').length;
+  const draws = displayedRecords.filter(r => r.result === 'draw').length;
 
   const playableGamesCount = wins + losses;
   const winRate = playableGamesCount > 0 ? (wins / playableGamesCount) * 100 : 0;
@@ -118,11 +150,17 @@ export default function StatsDashboard({ favoriteTeam, records }: StatsDashboard
       titleDesc = '많이 가면..탈출하지 않을까..?';
       emoji = '🧗';
     }
+  } else {
+    fanTitle = '직관새내기 🌱';
+    titleDesc = selectedYear === 'all'
+      ? '첫 직관을 기록하여 승리요정에 도전하세요!'
+      : `${selectedYear}년에는 등록된 직관 기록이 없습니다.`;
+    emoji = '🐥';
   }
 
-  // 구장 특이성별 누적 승률 계산
+  // 구장 특이성별 누적 승률 계산 (선택된 년도 기준)
   const stadiumStats: { [stadium: string]: { wins: number; total: number } } = {};
-  records.forEach(r => {
+  displayedRecords.forEach(r => {
     if (!stadiumStats[r.stadium]) {
       stadiumStats[r.stadium] = { wins: 0, total: 0 };
     }
@@ -132,9 +170,9 @@ export default function StatsDashboard({ favoriteTeam, records }: StatsDashboard
     }
   });
 
-  // 상대 구단 대전별 승패무 및 총 게임 수 계산
+  // 상대 구단 대전별 승패무 및 총 게임 수 계산 (선택된 년도 기준)
   const opponentStats: { [oppId: string]: { wins: number; losses: number; draws: number; total: number } } = {};
-  records.forEach(r => {
+  displayedRecords.forEach(r => {
     if (!opponentStats[r.opponentTeamId]) {
       opponentStats[r.opponentTeamId] = { wins: 0, losses: 0, draws: 0, total: 0 };
     }
@@ -185,12 +223,12 @@ export default function StatsDashboard({ favoriteTeam, records }: StatsDashboard
       .sort((a, b) => b.year.localeCompare(a.year));
   }, [records]);
 
-  // 총 구매 티켓 합산 연산 누계
-  const totalSpending = records.reduce((sum, r) => sum + (r.ticketPrice || 0), 0);
+  // 총 구매 티켓 합산 연산 누계 (선택된 년도 기준)
+  const totalSpending = displayedRecords.reduce((sum, r) => sum + (r.ticketPrice || 0), 0);
 
-  // 직관 중 즐겨 먹은 먹거리 메뉴 빈도 분석
+  // 직관 중 즐겨 먹은 먹거리 메뉴 빈도 분석 (선택된 년도 기준)
   const foodCounts: { [food: string]: number } = {};
-  records.forEach(r => {
+  displayedRecords.forEach(r => {
     if (r.foods) {
       r.foods.forEach(food => {
         foodCounts[food] = (foodCounts[food] || 0) + 1;
@@ -202,13 +240,48 @@ export default function StatsDashboard({ favoriteTeam, records }: StatsDashboard
     .slice(0, 5); // 상위 선호 대표 먹거리 메뉴 TOP 5 슬라이싱
 
   return (
-    <div id="statistics-panel" className="space-y-5">
+    <div id="statistics-panel" className="space-y-4">
+      {/* 0. 년도 선택 콤보박스 (나의 직관 요정 지수 바로 상단) */}
+      <div id="report-year-combobox-wrapper" className="flex items-center justify-between px-1">
+        <div className="relative inline-flex items-center">
+          <select
+            id="report-year-select"
+            value={selectedYear}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSelectedYear(val);
+              if (val !== 'all') {
+                setCurrentYear(parseInt(val, 10));
+              }
+            }}
+            aria-label="보고서 년도 선택"
+            className="appearance-none bg-white border border-[#e5e8eb] hover:border-brand/40 text-[#191f28] font-black text-xs sm:text-sm py-2 pl-3.5 pr-8 rounded-2xl shadow-2xs cursor-pointer transition focus:outline-hidden focus:border-brand flex items-center"
+          >
+            {availableYears.map(yr => (
+              <option key={yr} value={String(yr)}>
+                {yr}년
+              </option>
+            ))}
+            <option value="all">전체</option>
+          </select>
+          <ChevronDown className="w-4 h-4 text-[#8b95a1] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        </div>
+        <span className="text-[11px] font-semibold text-[#8b95a1]">
+          {selectedYear === 'all' ? '전체 직관 통계' : `${selectedYear} 시즌 통계 리포트`}
+        </span>
+      </div>
+
       {/* 1. 종합 직관 승률 및 맞춤형 타이틀 배너 전면 노출 */}
       <div id="stats-summary-card" className="bg-white border border-[#e5e8eb] p-5 rounded-3xl relative overflow-hidden shadow-xs">
         <div className="absolute top-0 right-0 w-36 h-36 bg-brand/5 rounded-full blur-2xl pointer-events-none" />
         
-        <div className="flex items-center gap-2.5">
-          <span className={`${TYPOGRAPHY.bodyBold} uppercase tracking-wider`}>나의 직관 요정 지수</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className={`${TYPOGRAPHY.bodyBold} uppercase tracking-wider`}>나의 직관 요정 지수</span>
+          </div>
+          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-brand/10 text-brand">
+            {selectedYear === 'all' ? '전체' : `${selectedYear}년`}
+          </span>
         </div>
 
         <div className="flex items-center justify-between mt-2">
@@ -526,14 +599,12 @@ export default function StatsDashboard({ favoriteTeam, records }: StatsDashboard
       {totalGames > 0 && (
         <div id="financial-ledger-card" className="bg-white border border-[#e5e8eb] p-4 rounded-3xl flex items-center justify-between shadow-xs">
           <div>
-            <span className={`${TYPOGRAPHY.captionMuted} text-[10px] uppercase tracking-wide block`}>티켓 경제 누적 소비</span>
-            <span className={`${TYPOGRAPHY.bodyMedium} mt-0.5`}>현재까지 예매 지출:</span>
+            <span className={`${TYPOGRAPHY.bodyMedium}`}>현재까지 예매 지출:</span>
           </div>
           <div className="text-right">
             <span className={`${TYPOGRAPHY.headingLg} text-lg font-mono`}>
               ₩{totalSpending.toLocaleString()}
             </span>
-            <span className={`${TYPOGRAPHY.captionMuted} block leading-none mt-0.5`}>평균 ₩{Math.round(totalSpending / totalGames).toLocaleString()} / 매치</span>
           </div>
         </div>
       )}

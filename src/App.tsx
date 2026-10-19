@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserProfile, Match, AttendanceRecord, Notice, Term, Inquiry, InquiryCategory, Player } from './types';
+import { UserProfile, Match, AttendanceRecord, Notice, Term, Inquiry, InquiryCategory, Player, HomeSectionConfig } from './types';
 import { KBO_TEAMS, MATCHES_DATA, getTeamById } from './data/kboData';
 import { NOTICES } from './data/notices';
 import { TERMS } from './data/terms';
@@ -26,7 +26,9 @@ import InquiryForm from './components/InquiryForm';
 import WithdrawScreen from './components/WithdrawScreen';
 import FavoritePlayersScreen from './components/FavoritePlayersScreen';
 import FavoritePlayersStats from './components/FavoritePlayersStats';
-import { Calendar, Trophy, BarChart2, BookOpen, Clock, User, ShieldAlert, Home, FileText, ShoppingBag, Plus, Bell, ChevronDown, Check, Settings, ChevronLeft, ChevronRight, Dribbble } from 'lucide-react';
+import HomeSectionSettingsModal, { DEFAULT_HOME_SECTIONS } from './components/HomeSectionSettingsModal';
+import { AttendanceFairyCard, AttendanceWinRateCalendarCard, OpponentWinRateCard } from './components/ReportStatsCards';
+import { Calendar, Trophy, BarChart2, BookOpen, Clock, User, ShieldAlert, Home, FileText, ShoppingBag, Plus, Bell, ChevronDown, Check, Settings, ChevronLeft, ChevronRight, Dribbble, SlidersHorizontal } from 'lucide-react';
 
 export default function App() {
   // 1. 앱 주요 최상위 반응형 상태 정의부
@@ -49,6 +51,8 @@ export default function App() {
   const [selectedTerm, setSelectedTerm] = useState<Term | null>(null); // 약관 및 정책 목록에서 선택한 글 (있으면 상세 화면 표시)
   const [inquiries, setInquiries] = useState<Inquiry[]>(INQUIRIES); // 내 문의 목록
   const [isInquiryFormOpen, setIsInquiryFormOpen] = useState(false); // 문의 작성 화면이 열려 있는지 여부
+  const [homeSections, setHomeSections] = useState<HomeSectionConfig[]>(DEFAULT_HOME_SECTIONS); // 홈 화면 섹션 목록 및 순서
+  const [isHomeSettingsOpen, setIsHomeSettingsOpen] = useState(false); // 홈 화면 섹션 설정 모달 열림 여부
   
   // 2. 마운트 시 브라우저 로컬 저장소로부터 저장 데이터 불러오기 및 초기 세팅
   useEffect(() => {
@@ -69,6 +73,27 @@ export default function App() {
         setProfile(JSON.parse(savedProfile));
       } catch (e) {
         console.error('Error parsing profile', e);
+      }
+    }
+
+    // 홈 화면 섹션 커스텀 설정 복구
+    const savedHomeSections = localStorage.getItem('kbo_home_sections_config');
+    if (savedHomeSections) {
+      try {
+        const parsed = JSON.parse(savedHomeSections);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const validIds = new Set(DEFAULT_HOME_SECTIONS.map((s) => s.id));
+          const filtered = parsed.filter((s: any) => validIds.has(s.id));
+          // 새로 추가된 기본 섹션이 있다면 누락되지 않도록 병합
+          DEFAULT_HOME_SECTIONS.forEach((def) => {
+            if (!filtered.some((s: any) => s.id === def.id)) {
+              filtered.push(def);
+            }
+          });
+          setHomeSections(filtered);
+        }
+      } catch (e) {
+        console.error('Error parsing home sections config', e);
       }
     }
 
@@ -138,10 +163,18 @@ export default function App() {
     if (window.confirm('경고: 로그아웃 및 작성된 모든 직관 기록, 먹거리 기록이 완전히 삭제됩니다. 초기화하시겠습니까?')) {
       localStorage.removeItem('kbo_fan_profile');
       localStorage.removeItem('kbo_attendance_records');
+      localStorage.removeItem('kbo_home_sections_config');
       setProfile(null);
       setRecords([]);
+      setHomeSections(DEFAULT_HOME_SECTIONS);
       setActiveTab('home');
     }
+  };
+
+  // 홈 화면 섹션 순서 및 노출 설정 저장
+  const handleSaveHomeSections = (newSections: HomeSectionConfig[]) => {
+    setHomeSections(newSections);
+    localStorage.setItem('kbo_home_sections_config', JSON.stringify(newSections));
   };
 
   // 4. 직관 다이어리 기록 작성 및 다이어리 폼 수정 제어 핸들러
@@ -217,6 +250,7 @@ export default function App() {
     localStorage.removeItem('kbo_fan_profile');
     localStorage.removeItem('kbo_attendance_records');
     localStorage.removeItem('kbo_fav_songs');
+    localStorage.removeItem('kbo_home_sections_config');
 
     // 상태값 초기화
     setRecords([]);
@@ -226,6 +260,7 @@ export default function App() {
     setMySubPage(null);
     setShowMySettings(false);
     setFavoritePlayers([]);
+    setHomeSections(DEFAULT_HOME_SECTIONS);
     setActiveTab('home');
     setProfile(null); // 프로필이 없어지면 로그인 화면이 보임
   }  
@@ -321,6 +356,15 @@ export default function App() {
 
                       {/* 우측 종아이콘 및 알림 */}
                       <div className="flex items-center gap-1">
+                        <button
+                          id="btn-home-settings"
+                          onClick={() => setIsHomeSettingsOpen(true)}
+                          className="p-2 text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50 rounded-xl transition cursor-pointer relative"
+                          title="홈화면구성"
+                        >
+                          <SlidersHorizontal className="w-5 h-5 stroke-[2.2]" />
+                        </button>
+
                         <div className="relative">
                           <button 
                             id="btn-alert-notifications"
@@ -483,7 +527,7 @@ export default function App() {
                   )}
 
                   {/* 스마트폰 기기 프레임 스크롤 대시보드 콘텐츠 영역 메인 컨테이너 */}
-                  <main className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+                  <main className="flex-1 overflow-y-auto px-4 pt-4 pb-12 space-y-4 scrollbar-thin">
                     
                     {activeTab === 'home' && favoriteTeamObj && (() => {
                       const teamMatches = MATCHES_DATA.filter(
@@ -495,31 +539,85 @@ export default function App() {
 
                       return (
                         <>
-                          {/* 2. 마이팀 순위 간략 대시보드 */}
+                          {/* 마이팀 순위 간략 대시보드 */}
                           <TeamStandings favoriteTeam={favoriteTeamObj} onlyMyTeam={true} />
 
-                          {/* 3. 직전 또는 현재 진행 경기/오늘의 예정 실시간 중계 패널 */}
-                          <NextMatch
-                            favoriteTeam={favoriteTeamObj}
-                            matches={MATCHES_DATA}
-                            onAttendanceClick={handleOpenFormWithMatch}
-                            hasRecord={hasRecord}
-                          />
+                          {/* 직관기록 탭 나의 응원보고서 3종: 나의 직관 요정 지수, 직관기록 캘린더, 상대 구단별 직관 승률 전적 */}
+                          <AttendanceFairyCard records={records} favoriteTeam={favoriteTeamObj} />
+                          <AttendanceWinRateCalendarCard records={records} />
+                          <OpponentWinRateCard records={records} favoriteTeam={favoriteTeamObj} />
 
-                          {/* 4. 경기 일정을 파악할 수 있는 매치 직관 달력 캘린더 위젯 */}
-                          <MatchCalendar
-                            favoriteTeam={favoriteTeamObj}
-                            matches={MATCHES_DATA}
-                            attendanceRecords={records}
-                            onMatchSelect={handleOpenFormWithMatch}
-                            onAddCustomRecord={handleOpenFormManual}
-                          />
+                          {/* 사용자 맞춤 홈 섹션 순서 및 노출 렌더링 */}
+                          {homeSections.map((section) => {
+                            if (!section.enabled) return null;
 
-                          {/* 5. 10개 구단 전체 종합 순위표 */}
-                          <TeamStandings favoriteTeam={favoriteTeamObj} />
+                            switch (section.id) {
+                              case 'liveMatch':
+                                return (
+                                  <NextMatch
+                                    key="home-section-liveMatch"
+                                    favoriteTeam={favoriteTeamObj}
+                                    matches={MATCHES_DATA}
+                                    onAttendanceClick={handleOpenFormWithMatch}
+                                    hasRecord={hasRecord}
+                                    sectionType="live"
+                                  />
+                                );
+                              case 'nextMatch':
+                                return (
+                                  <NextMatch
+                                    key="home-section-nextMatch"
+                                    favoriteTeam={favoriteTeamObj}
+                                    matches={MATCHES_DATA}
+                                    onAttendanceClick={handleOpenFormWithMatch}
+                                    hasRecord={hasRecord}
+                                    sectionType="upcoming"
+                                  />
+                                );
+                              case 'teamCalendar':
+                                return (
+                                  <MatchCalendar
+                                    key="home-section-teamCalendar"
+                                    favoriteTeam={favoriteTeamObj}
+                                    matches={MATCHES_DATA}
+                                    attendanceRecords={records}
+                                    onMatchSelect={handleOpenFormWithMatch}
+                                    onAddCustomRecord={handleOpenFormManual}
+                                  />
+                                );
+                              case 'teamStandings':
+                                return (
+                                  <TeamStandings
+                                    key="home-section-teamStandings"
+                                    favoriteTeam={favoriteTeamObj}
+                                  />
+                                );
+                              case 'playerRankings':
+                                return (
+                                  <PlayerRankings
+                                    key="home-section-playerRankings"
+                                    favoriteTeam={favoriteTeamObj}
+                                  />
+                                );
+                              default:
+                                return null;
+                            }
+                          })}
 
-                          {/* 6. 이번 시즌 주요 타자/투수 개인 랭킹 */}
-                          <PlayerRankings favoriteTeam={favoriteTeamObj} />
+                          {/* 모든 섹션이 숨김 처리된 경우 플러스 표시 */}
+                          {homeSections.every((s) => !s.enabled) && (
+                            <button
+                              id="btn-add-home-cards-empty"
+                              type="button"
+                              onClick={() => setIsHomeSettingsOpen(true)}
+                              className="w-full py-3 bg-white rounded-2xl border border-zinc-200/80 shadow-xs hover:border-brand/40 hover:bg-zinc-50/50 flex items-center justify-center transition cursor-pointer group animate-fadeIn"
+                              aria-label="홈 화면 카드 추가"
+                            >
+                              <div className="w-8 h-8 rounded-xl bg-[#f2f4f6] group-hover:bg-brand/10 text-zinc-400 group-hover:text-brand flex items-center justify-center transition">
+                                <Plus className="w-5 h-5 stroke-[2.5]" />
+                              </div>
+                            </button>
+                          )}
                         </>
                       );
                     })()}
@@ -766,11 +864,6 @@ export default function App() {
                   >
                     <FileText className="w-5.5 h-5.5 stroke-[2.0]" />
                     <span className="text-[10px] font-bold tracking-tight">직관기록</span>
-                    {records.length > 0 && (
-                      <span className="absolute -top-1 -right-2.5 bg-[#f04452] text-white font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                        {records.length}
-                      </span>
-                    )}
                   </button>
 
                   {/* 중간: 야구공 응원가 탭 영역 */}
@@ -896,7 +989,15 @@ export default function App() {
                       </div>
                     </div>
                   </>
-                )}                       
+                )}
+
+                {/* 홈 화면 섹션 순서 및 노출 설정 바텀시트 모달 */}
+                <HomeSectionSettingsModal
+                  isOpen={isHomeSettingsOpen}
+                  onClose={() => setIsHomeSettingsOpen(false)}
+                  sections={homeSections}
+                  onSave={handleSaveHomeSections}
+                />
               </div>
             )}
             

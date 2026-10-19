@@ -98,7 +98,7 @@ export const TEXTS = {
   win: "승",
   loss: "패",
   draw: "무",
-  attendanceWinRate: "직관기록 승률",
+  attendanceWinRate: "직관기록 캘린더",
   yearlyAttendance: "년도별 직관기록",
   opponentWinRate: "상대 구단별 직관 승률 전적",
   noRecords: "등록된 직관 기록이 없습니다.",

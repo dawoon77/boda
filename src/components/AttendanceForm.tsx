@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Match, KBOTeam, AttendanceRecord } from '../types';
 import { KBO_TEAMS, FAMOUS_BALLPARK_FOODS, MATCHES_DATA } from '../data/kboData';
-import { Calendar, MapPin, Check, Trash2, Image as ImageIcon, ChevronLeft } from 'lucide-react';
+import { Calendar, MapPin, Check, Trash2, Image as ImageIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { COLORS, TYPOGRAPHY, BUTTONS, LAYOUT } from '../lib/styles';
 
 interface AttendanceFormProps {
@@ -39,6 +39,25 @@ export default function AttendanceForm({
   const [selectedFoods, setSelectedFoods] = useState<string[]>([]);
   const [customFood, setCustomFood] = useState('');
   const [validationError, setValidationError] = useState('');
+
+  // 경기 일자 선택 달력 팝업 모달 상태
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [pickerYear, setPickerYear] = useState(2026);
+  const [pickerMonth, setPickerMonth] = useState(5);
+  const [forceCustomEdit, setForceCustomEdit] = useState(false);
+
+  // 선택된 date에 맞춰 캘린더 피커의 연/월 동기화
+  useEffect(() => {
+    if (date) {
+      const parts = date.split('-');
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        if (!isNaN(y)) setPickerYear(y);
+        if (!isNaN(m)) setPickerMonth(m);
+      }
+    }
+  }, [date, isDatePickerOpen]);
  
   // 입력값(수정 타겟 레코드 데이터 혹은 선택한 직전 대진 결과) 기반 로컬 상태값 초기화
   useEffect(() => {
@@ -199,6 +218,8 @@ export default function AttendanceForm({
     m.status === 'completed'
   ) || (selectedMatch?.status === 'completed' && selectedMatch.date === date);
 
+  const isLocked = isEndedGame && !forceCustomEdit;
+
   return (
     <div id="attendance-form-overlay" className="absolute inset-0 bg-white z-40 flex flex-col h-full overflow-y-auto text-[#191f28] sm:rounded-[36px]">
       
@@ -239,15 +260,18 @@ export default function AttendanceForm({
             <div className="space-y-4">
               <div className="grid grid-cols-[4.5fr_5.5fr] gap-4">
                 <div className="space-y-1">
-                  <label className={`${TYPOGRAPHY.bodyBold} block mb-2`}>
+                  <label htmlFor="btn-open-date-picker" className={`${TYPOGRAPHY.bodyBold} block mb-2`}>
                     <span>경기 일자</span>
                   </label>
-                  <div 
-                    className="relative w-full cursor-pointer group select-none"
+                  <button
+                    id="btn-open-date-picker"
+                    type="button"
+                    onClick={() => setIsDatePickerOpen(true)}
+                    className={`${LAYOUT.input} flex items-center justify-between bg-white !border-[#e5e8eb] hover:border-[#3182f6] hover:bg-blue-50/20 active:scale-[0.99] transition-all h-11 w-full !px-3 cursor-pointer group text-left`}
                   >
-                    {/* 사용자가 보기 수월하도록 가시화 커스텀 적용한 데이트 링커 */}
-                    <div className={`${LAYOUT.input} flex items-center bg-white !border-[#e5e8eb] group-hover:border-zinc-300 transition-colors h-11 w-full !px-3.5`}>
-                      <span className="text-[#191f28] font-medium font-sans text-[13px]">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Calendar className="w-4 h-4 text-brand shrink-0 group-hover:scale-110 transition-transform" />
+                      <span className="text-[#191f28] font-bold font-sans text-[12.5px] truncate">
                         {(() => {
                           if (!date) return '날짜 선택';
                           const parts = date.split('-');
@@ -258,16 +282,16 @@ export default function AttendanceForm({
                         })()}
                       </span>
                     </div>
-                    {/* 클릭 트리거가 올바르게 전파될 수 있게 투명하게 얹은 실제 인풋 홀더 */}
-                    <input
-                      id="form-date-input"
-                      type="date"
-                      required
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    />
-                  </div>
+                    <span className="text-[11px] text-[#3182f6] font-bold shrink-0 bg-blue-50 px-2 py-0.5 rounded-lg group-hover:bg-blue-100 transition-colors">
+                      변경
+                    </span>
+                  </button>
+                  <input
+                    id="form-date-input"
+                    type="hidden"
+                    value={date}
+                    readOnly
+                  />
                 </div>
 
                 <div className="space-y-1 pl-2.5">
@@ -276,13 +300,13 @@ export default function AttendanceForm({
                     <button
                       id="btn-form-home"
                       type="button"
-                      disabled={isEndedGame}
+                      disabled={isLocked}
                       onClick={() => {
                         setIsHome(true);
                         setStadium(favoriteTeam.stadium);
                       }}
                       className={`h-8 rounded-xl text-[11px] font-bold transition-all duration-200 flex items-center justify-center ${
-                        isEndedGame ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                        isLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
                       } ${
                         isHome ? 'bg-brand text-white shadow-xs' : 'text-[#8b95a1] hover:text-[#4e5968]'
                       }`}
@@ -292,14 +316,14 @@ export default function AttendanceForm({
                     <button
                       id="btn-form-away"
                       type="button"
-                      disabled={isEndedGame}
+                      disabled={isLocked}
                       onClick={() => {
                         setIsHome(false);
                         const opp = KBO_TEAMS.find(t => t.id === opponentTeamId);
                         setStadium(opp ? opp.stadium : '');
                       }}
                       className={`h-8 rounded-xl text-[11px] font-bold transition-all duration-200 flex items-center justify-center ${
-                        isEndedGame ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                        isLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
                       } ${
                         !isHome ? 'bg-brand text-white shadow-xs' : 'text-[#8b95a1] hover:text-[#4e5968]'
                       }`}
@@ -311,9 +335,22 @@ export default function AttendanceForm({
               </div>
 
               {isEndedGame && (
-                <div className="bg-[#f0f4fa] text-brand text-[11px] font-bold p-3.5 rounded-2xl flex items-start gap-2 select-none leading-relaxed">
-                  <span className="shrink-0 mt-0.5">ℹ️</span>
-                  <span>종료된 공식 경기는 정보를 변경할 수 없습니다 (홈/원정, 상대 팀, 스코어, 경기장 고정).</span>
+                <div className="bg-[#f0f4fa] text-brand text-[11px] font-bold p-3.5 rounded-2xl flex items-center justify-between gap-2 select-none leading-relaxed">
+                  <div className="flex items-start gap-2">
+                    <span className="shrink-0 mt-0.5">ℹ️</span>
+                    <span>
+                      {forceCustomEdit 
+                        ? '공식 경기 정보를 직접 수정할 수 있도록 잠금 해제되었습니다.' 
+                        : '종료된 공식 경기 정보가 자동 입력되었습니다.'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForceCustomEdit(!forceCustomEdit)}
+                    className="shrink-0 px-2.5 py-1 text-[11px] font-bold bg-white text-brand border border-brand/20 rounded-xl hover:bg-brand hover:text-white transition cursor-pointer shadow-2xs"
+                  >
+                    {forceCustomEdit ? '자동 입력 복원' : '직접 수정'}
+                  </button>
                 </div>
               )}
 
@@ -328,7 +365,7 @@ export default function AttendanceForm({
                         id={`form-opp-${t.id}`}
                         key={t.id}
                         type="button"
-                        disabled={isEndedGame}
+                        disabled={isLocked}
                         onClick={() => {
                           setOpponentTeamId(t.id);
                           if (!isHome) {
@@ -336,7 +373,7 @@ export default function AttendanceForm({
                           }
                         }}
                         className={`px-3.5 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-1.5 shrink-0 border transition-all ${
-                          isEndedGame ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                          isLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
                         } ${
                           isSelected 
                             ? 'border-transparent text-white shadow-sm font-bold' 
@@ -365,9 +402,9 @@ export default function AttendanceForm({
                     <button
                       id="btn-our-score-minus"
                       type="button"
-                      disabled={isEndedGame}
+                      disabled={isLocked}
                       onClick={() => handleScoreChange('our', Math.max(0, ourScore - 1))}
-                      className={`${BUTTONS.roundAction} ${isEndedGame ? 'opacity-30 cursor-not-allowed' : ''}`}
+                      className={`${BUTTONS.roundAction} ${isLocked ? 'opacity-30 cursor-not-allowed' : ''}`}
                     >
                       -
                     </button>
@@ -375,9 +412,9 @@ export default function AttendanceForm({
                     <button
                       id="btn-our-score-plus"
                       type="button"
-                      disabled={isEndedGame}
+                      disabled={isLocked}
                       onClick={() => handleScoreChange('our', ourScore + 1)}
-                      className={`${BUTTONS.roundAction} ${isEndedGame ? 'opacity-30 cursor-not-allowed' : ''}`}
+                      className={`${BUTTONS.roundAction} ${isLocked ? 'opacity-30 cursor-not-allowed' : ''}`}
                     >
                       +
                     </button>
@@ -391,9 +428,9 @@ export default function AttendanceForm({
                     <button
                       id="btn-opp-score-minus"
                       type="button"
-                      disabled={isEndedGame}
+                      disabled={isLocked}
                       onClick={() => handleScoreChange('opp', Math.max(0, oppScore - 1))}
-                      className={`${BUTTONS.roundAction} ${isEndedGame ? 'opacity-30 cursor-not-allowed' : ''}`}
+                      className={`${BUTTONS.roundAction} ${isLocked ? 'opacity-30 cursor-not-allowed' : ''}`}
                     >
                       -
                     </button>
@@ -401,9 +438,9 @@ export default function AttendanceForm({
                     <button
                       id="btn-opp-score-plus"
                       type="button"
-                      disabled={isEndedGame}
+                      disabled={isLocked}
                       onClick={() => handleScoreChange('opp', oppScore + 1)}
-                      className={`${BUTTONS.roundAction} ${isEndedGame ? 'opacity-30 cursor-not-allowed' : ''}`}
+                      className={`${BUTTONS.roundAction} ${isLocked ? 'opacity-30 cursor-not-allowed' : ''}`}
                     >
                       +
                     </button>
@@ -434,7 +471,7 @@ export default function AttendanceForm({
                 <select
                   id="form-stadium-input"
                   required
-                  disabled={isEndedGame}
+                  disabled={isLocked}
                   value={stadium}
                   onChange={(e) => setStadium(e.target.value)}
                   className={`${LAYOUT.input} !border-zinc-200 bg-white disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed cursor-pointer`}
@@ -736,6 +773,267 @@ export default function AttendanceForm({
 
         </form>
       </div>
+
+      {/* 경기 일자 선택 달력 모달 */}
+      {isDatePickerOpen && (
+        <div 
+          id="date-picker-modal-backdrop"
+          className="fixed inset-0 z-50 bg-[#191f28]/60 backdrop-blur-2xs flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setIsDatePickerOpen(false)}
+        >
+          <div 
+            id="date-picker-modal-content"
+            className="bg-white rounded-3xl p-5 shadow-2xl max-w-sm w-full space-y-4 border border-zinc-100 animate-scaleUp select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 모달 상단 헤더 */}
+            <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-brand/10 flex items-center justify-center text-brand">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <h3 className="text-[15px] font-bold text-[#191f28]">경기 일자 선택</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsDatePickerOpen(false)}
+                className="w-7 h-7 rounded-full hover:bg-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition cursor-pointer"
+                aria-label="닫기"
+              >
+                <X className="w-4 h-4 stroke-[2.5]" />
+              </button>
+            </div>
+
+            {/* 빠른 날짜 선택 칩 */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => {
+                  setDate('2026-05-26');
+                  setPickerYear(2026);
+                  setPickerMonth(5);
+                  setIsDatePickerOpen(false);
+                }}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all cursor-pointer ${
+                  date === '2026-05-26'
+                    ? 'bg-brand text-white shadow-2xs'
+                    : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-zinc-200'
+                }`}
+              >
+                오늘 (5/26)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDate('2026-05-25');
+                  setPickerYear(2026);
+                  setPickerMonth(5);
+                  setIsDatePickerOpen(false);
+                }}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all cursor-pointer ${
+                  date === '2026-05-25'
+                    ? 'bg-brand text-white shadow-2xs'
+                    : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-zinc-200'
+                }`}
+              >
+                어제 (5/25)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDate('2026-05-24');
+                  setPickerYear(2026);
+                  setPickerMonth(5);
+                  setIsDatePickerOpen(false);
+                }}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all cursor-pointer ${
+                  date === '2026-05-24'
+                    ? 'bg-brand text-white shadow-2xs'
+                    : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-zinc-200'
+                }`}
+              >
+                5/24 (일)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDate('2026-05-23');
+                  setPickerYear(2026);
+                  setPickerMonth(5);
+                  setIsDatePickerOpen(false);
+                }}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all cursor-pointer ${
+                  date === '2026-05-23'
+                    ? 'bg-brand text-white shadow-2xs'
+                    : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-zinc-200'
+                }`}
+              >
+                5/23 (토)
+              </button>
+            </div>
+
+            {/* 년/월 전환 내비게이터 */}
+            <div className="flex items-center justify-between px-1 py-1 bg-zinc-50 rounded-2xl">
+              <button
+                type="button"
+                onClick={() => {
+                  if (pickerMonth === 1) {
+                    setPickerYear(prev => prev - 1);
+                    setPickerMonth(12);
+                  } else {
+                    setPickerMonth(prev => prev - 1);
+                  }
+                }}
+                className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-zinc-200/70 text-zinc-600 transition cursor-pointer"
+                title="이전 달"
+              >
+                <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
+              </button>
+
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={pickerYear}
+                  onChange={(e) => setPickerYear(Number(e.target.value))}
+                  className="bg-transparent font-bold text-[13px] text-[#191f28] cursor-pointer focus:outline-none"
+                >
+                  {[2026, 2025, 2024, 2023, 2022].map(y => (
+                    <option key={y} value={y}>{y}년</option>
+                  ))}
+                </select>
+                <select
+                  value={pickerMonth}
+                  onChange={(e) => setPickerMonth(Number(e.target.value))}
+                  className="bg-transparent font-bold text-[13px] text-[#191f28] cursor-pointer focus:outline-none"
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                    <option key={m} value={m}>{m}월</option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (pickerMonth === 12) {
+                    setPickerYear(prev => prev + 1);
+                    setPickerMonth(1);
+                  } else {
+                    setPickerMonth(prev => prev + 1);
+                  }
+                }}
+                className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-zinc-200/70 text-zinc-600 transition cursor-pointer"
+                title="다음 달"
+              >
+                <ChevronRight className="w-4 h-4 stroke-[2.5]" />
+              </button>
+            </div>
+
+            {/* 달력 요일 헤더 */}
+            <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-zinc-400">
+              <span className="text-rose-500">일</span>
+              <span>월</span>
+              <span>화</span>
+              <span>수</span>
+              <span>목</span>
+              <span>금</span>
+              <span className="text-blue-500">토</span>
+            </div>
+
+            {/* 달력 날짜 그리드 */}
+            <div className="grid grid-cols-7 gap-1">
+              {(() => {
+                const totalDays = new Date(pickerYear, pickerMonth, 0).getDate();
+                const startDay = new Date(pickerYear, pickerMonth - 1, 1).getDay();
+                const days = [];
+
+                for (let i = 0; i < startDay; i++) {
+                  days.push(<div key={`empty-${i}`} className="h-10" />);
+                }
+
+                for (let d = 1; d <= totalDays; d++) {
+                  const dStr = `${pickerYear}-${String(pickerMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                  const isSelected = date === dStr;
+                  const dayOfWeek = (d + startDay - 1) % 7;
+                  const isSunday = dayOfWeek === 0;
+                  const isSaturday = dayOfWeek === 6;
+
+                  // 선호 구단 해당 일자 경기 매칭
+                  const match = MATCHES_DATA.find(
+                    m => m.date === dStr && (m.homeTeamId === favoriteTeam.id || m.awayTeamId === favoriteTeam.id)
+                  );
+                  const opp = match 
+                    ? KBO_TEAMS.find(t => t.id === (match.homeTeamId === favoriteTeam.id ? match.awayTeamId : match.homeTeamId))
+                    : null;
+
+                  days.push(
+                    <button
+                      key={dStr}
+                      type="button"
+                      onClick={() => {
+                        setDate(dStr);
+                        setForceCustomEdit(false);
+                        setIsDatePickerOpen(false);
+                      }}
+                      className={`h-10 rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer relative ${
+                        isSelected
+                          ? 'bg-brand text-white font-bold shadow-md scale-105 ring-2 ring-brand/30'
+                          : 'hover:bg-zinc-100 text-[#191f28]'
+                      }`}
+                    >
+                      <span className={`text-[12px] leading-none ${
+                        isSelected 
+                          ? 'text-white font-bold' 
+                          : isSunday 
+                            ? 'text-rose-500 font-semibold' 
+                            : isSaturday 
+                              ? 'text-blue-500 font-semibold' 
+                              : 'text-zinc-700'
+                      }`}>
+                        {d}
+                      </span>
+                      {match && opp && (
+                        <span className={`text-[8px] leading-tight truncate px-0.5 mt-0.5 font-bold ${
+                          isSelected ? 'text-blue-100' : 'text-[#3182f6]'
+                        }`}>
+                          {opp.shortName}
+                        </span>
+                      )}
+                    </button>
+                  );
+                }
+                return days;
+              })()}
+            </div>
+
+            {/* 수동 직접 입력 옵션 */}
+            <div className="pt-2 border-t border-zinc-100 flex items-center justify-between gap-2">
+              <span className="text-[11px] text-zinc-500 font-medium shrink-0">직접 입력:</span>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setDate(e.target.value);
+                    const parts = e.target.value.split('-');
+                    if (parts.length === 3) {
+                      setPickerYear(parseInt(parts[0], 10));
+                      setPickerMonth(parseInt(parts[1], 10));
+                    }
+                  }
+                }}
+                className="flex-1 text-xs bg-zinc-50 border border-zinc-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-brand font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setIsDatePickerOpen(false)}
+                className="px-3 py-1.5 bg-brand text-white text-xs font-bold rounded-xl hover:bg-[#4314c4] transition cursor-pointer shadow-2xs"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

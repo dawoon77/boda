@@ -36,6 +36,7 @@ export interface Match {
   status: MatchStatus;
   inning?: string; // e.g., "5회초", "9회말", "종료"
   liveDetails?: MatchLiveDetails;
+  stadium?: string;
 }
 
 export interface AttendanceRecord {
@@ -125,4 +126,18 @@ export interface PitcherStats {
   saves: number;        // 세이브
   holds: number;        // 홀드
   strikeouts: number;   // 탈삼진
+}
+
+export type HomeSectionId = 
+  | 'liveMatch' 
+  | 'nextMatch' 
+  | 'teamCalendar' 
+  | 'teamStandings' 
+  | 'playerRankings';
+
+export interface HomeSectionConfig {
+  id: HomeSectionId;
+  name: string;
+  description: string;
+  enabled: boolean;
 }
