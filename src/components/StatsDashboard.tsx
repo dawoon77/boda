@@ -599,7 +599,9 @@ export default function StatsDashboard({ favoriteTeam, records }: StatsDashboard
       {totalGames > 0 && (
         <div id="financial-ledger-card" className="bg-white border border-[#e5e8eb] p-4 rounded-3xl flex items-center justify-between shadow-xs">
           <div>
-            <span className={`${TYPOGRAPHY.bodyMedium}`}>현재까지 예매 지출:</span>
+            <span className={`${TYPOGRAPHY.bodyMedium}`}>
+              {selectedYear === 'all' ? '전체 예매 지출:' : `${selectedYear}년 예매 지출:`}
+            </span>
           </div>
           <div className="text-right">
             <span className={`${TYPOGRAPHY.headingLg} text-lg font-mono`}>
