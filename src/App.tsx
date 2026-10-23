@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { UserProfile, Match, AttendanceRecord, Notice, Term, Inquiry, InquiryCategory, Player, HomeSectionConfig } from './types';
 import { KBO_TEAMS, MATCHES_DATA, getTeamById } from './data/kboData';
 import { NOTICES } from './data/notices';
@@ -36,6 +36,7 @@ export default function App() {
   const [records, setRecords] = useState<AttendanceRecord[]>([]); // 내가 작성한 직관 기록 목록
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null); // 폼을 열 때 선택한 경기
   const [selectedRecordToEdit, setSelectedRecordToEdit] = useState<AttendanceRecord | undefined>(undefined); // 수정할 기존 기록
+  const [formInitialMode, setFormInitialMode] = useState<'view' | 'edit'>('edit'); // 폼 오픈 시 상세(view) 또는 수정(edit) 모드
   const [isFormOpen, setIsFormOpen] = useState(false); // 직관 기록 작성 폼(팝업)이 열려 있는지 여부
   const [activeTab, setActiveTab] = useState<'home' | 'records' | 'cheer' | 'shopping' | 'my'>('home'); // 하단 탭 중 현재 선택된 탭
   const [recordsSubTab, setRecordsSubTab] = useState<'feed' | 'stats'>('feed'); // 직관기록 탭 안의 하위 탭
@@ -179,22 +180,33 @@ export default function App() {
 
   // 4. 직관 다이어리 기록 작성 및 다이어리 폼 수정 제어 핸들러
   const handleOpenFormWithMatch = (match: Match) => {
-    const existing = records.find(r => r.id === match.id);
+    const existing = records.find(r => r.id === match.id || r.matchId === match.id || r.date === match.date);
     setSelectedMatch(match);
     setSelectedRecordToEdit(existing);
+    setFormInitialMode(existing ? 'view' : 'edit');
     setIsFormOpen(true);
   };
 
   const handleOpenFormManual = () => {
     setSelectedMatch(null);
     setSelectedRecordToEdit(undefined);
+    setFormInitialMode('edit');
+    setIsFormOpen(true);
+  };
+
+  const handleOpenRecordDetail = (record: AttendanceRecord) => {
+    const match = MATCHES_DATA.find(m => m.id === record.id || (record.matchId && m.id === record.matchId) || m.date === record.date);
+    setSelectedMatch(match || null);
+    setSelectedRecordToEdit(record);
+    setFormInitialMode('view');
     setIsFormOpen(true);
   };
 
   const handleOpenFormForEdit = (record: AttendanceRecord) => {
-    const match = MATCHES_DATA.find(m => m.id === record.id);
+    const match = MATCHES_DATA.find(m => m.id === record.id || (record.matchId && m.id === record.matchId) || m.date === record.date);
     setSelectedMatch(match || null);
     setSelectedRecordToEdit(record);
+    setFormInitialMode('edit');
     setIsFormOpen(true);
   };
 
@@ -537,15 +549,30 @@ export default function App() {
                       const nextOrLiveMatch = sortedDocs.find(m => m.status === 'live' || m.status === 'scheduled') || (sortedDocs.length > 0 ? sortedDocs[sortedDocs.length - 1] : null);
                       const isMatchLive = nextOrLiveMatch && nextOrLiveMatch.status === 'live';
 
+                      const currentYear = new Date().getFullYear();
+                      const currentYearStr = String(currentYear);
+                      const thisYearRecords = records.filter(r => r.date && r.date.startsWith(currentYearStr));
+
                       return (
                         <>
                           {/* 마이팀 순위 간략 대시보드 */}
                           <TeamStandings favoriteTeam={favoriteTeamObj} onlyMyTeam={true} />
 
-                          {/* 직관기록 탭 나의 응원보고서 3종: 나의 직관 요정 지수, 직관기록 캘린더, 상대 구단별 직관 승률 전적 */}
-                          <AttendanceFairyCard records={records} favoriteTeam={favoriteTeamObj} />
-                          <AttendanceWinRateCalendarCard records={records} />
-                          <OpponentWinRateCard records={records} favoriteTeam={favoriteTeamObj} />
+                          {/* 직관기록 탭 나의 응원보고서 3종: 나의 직관 요정 지수(올해), 직관기록 캘린더, 상대 구단별 직관 승률 전적(올해) */}
+                          <AttendanceFairyCard
+                            records={thisYearRecords}
+                            favoriteTeam={favoriteTeamObj}
+                            yearBadge={`올해 (${currentYear}년)`}
+                          />
+                          <AttendanceWinRateCalendarCard 
+                            records={records} 
+                            onViewRecord={handleOpenRecordDetail}
+                          />
+                          <OpponentWinRateCard
+                            records={thisYearRecords}
+                            favoriteTeam={favoriteTeamObj}
+                            yearBadge={`올해 (${currentYear}년)`}
+                          />
 
                           {/* 사용자 맞춤 홈 섹션 순서 및 노출 렌더링 */}
                           {homeSections.map((section) => {
@@ -582,6 +609,7 @@ export default function App() {
                                     matches={MATCHES_DATA}
                                     attendanceRecords={records}
                                     onMatchSelect={handleOpenFormWithMatch}
+                                    onViewRecord={handleOpenRecordDetail}
                                     onAddCustomRecord={handleOpenFormManual}
                                   />
                                 );
@@ -629,6 +657,7 @@ export default function App() {
                           <JournalFeed
                             favoriteTeam={favoriteTeamObj}
                             records={records}
+                            onViewRecord={handleOpenRecordDetail}
                             onEditRecord={handleOpenFormForEdit}
                             onDeleteRecord={handleDeleteRecord}
                           />
@@ -636,6 +665,7 @@ export default function App() {
                           <StatsDashboard
                             favoriteTeam={favoriteTeamObj}
                             records={records}
+                            onViewRecord={handleOpenRecordDetail}
                           />
                         )}
                       </div>
@@ -921,6 +951,7 @@ export default function App() {
                     favoriteTeam={favoriteTeamObj}
                     selectedMatch={selectedMatch}
                     existingRecord={selectedRecordToEdit}
+                    initialMode={formInitialMode}
                     onSave={handleSaveRecord}
                     onDelete={handleDeleteRecord}
                     onClose={() => {

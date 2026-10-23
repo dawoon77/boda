@@ -1,134 +1,40 @@
 import React, { useState } from 'react';
 import { AttendanceRecord, KBOTeam } from '../types';
 import { getTeamById } from '../data/kboData';
-import { MapPin, Calendar, Edit2, Camera, HelpCircle, ChevronLeft, ChevronRight, X, Maximize2, MoreVertical, Trash2 } from 'lucide-react';
-import { COLORS, TYPOGRAPHY, BUTTONS, LAYOUT } from '../lib/styles';
-
-interface DiaryPhotoCarouselProps {
-  urls: string[];
-  onPhotoClick: (idx: number) => void;
-}
-
-function DiaryPhotoCarousel({ urls, onPhotoClick }: DiaryPhotoCarouselProps) {
-  const [currentIdx, setCurrentIdx] = useState(0);
-
-  if (urls.length === 0) return null;
-
-  const handlePrev = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCurrentIdx((prev) => (prev === 0 ? urls.length - 1 : prev - 1));
-  };
-
-  const handleNext = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCurrentIdx((prev) => (prev === urls.length - 1 ? 0 : prev + 1));
-  };
-
-  return (
-    <div className="w-full aspect-square rounded-2xl border border-[#e5e8eb] overflow-hidden relative shadow-xs bg-zinc-50 mb-4 group select-none">
-      {/* 슬라이드 이미지 프레임 컨테이너 */}
-      <div className="w-full h-full relative overflow-hidden">
-        <div 
-          className="h-full flex transition-transform duration-300 ease-out cursor-zoom-in"
-          style={{ 
-            width: `${urls.length * 100}%`,
-            transform: `translateX(-${(currentIdx * 100) / urls.length}%)` 
-          }}
-          onClick={() => onPhotoClick(currentIdx)}
-        >
-          {urls.map((url, idx) => (
-            <div 
-              key={idx} 
-              style={{ width: `${100 / urls.length}%` }} 
-              className="h-full shrink-0 relative"
-            >
-              <img 
-                referrerPolicy="no-referrer"
-                src={url} 
-                alt={`직관 인증 사진 ${idx + 1}`}
-                className="w-full h-full object-cover" 
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-
-
-      {/* 상단 현재 슬라이더 이미지 카운트 인디케이터 오버레이 */}
-      {urls.length > 1 && (
-        <div className="absolute top-2.5 right-2.5 bg-black/75 backdrop-blur-xs text-white text-[10.5px] font-mono font-black px-2.5 py-0.5 rounded-lg border border-white/10 z-10 shadow-sm">
-          {currentIdx + 1} / {urls.length}장
-        </div>
-      )}
-
-      {/* 좌측/우측 다음 사진 조절 액션 버튼 */}
-      {urls.length > 1 && (
-        <>
-          <button
-            type="button"
-            onClick={handlePrev}
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 bg-white/95 border border-zinc-200 w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-50 select-none cursor-pointer active:scale-95 shadow-sm transition-all z-10"
-            title="이전 사진"
-          >
-            <ChevronLeft className="w-4 h-4 text-black stroke-[3]" />
-          </button>
-          <button
-            type="button"
-            onClick={handleNext}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-white/95 border border-zinc-200 w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-50 select-none cursor-pointer active:scale-95 shadow-sm transition-all z-10"
-            title="다음 사진"
-          >
-            <ChevronRight className="w-4 h-4 text-black stroke-[3]" />
-          </button>
-
-          {/* 하단 점형 인디케이터 도트 슬라이더 */}
-          <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/45 backdrop-blur-xs px-2.5 py-1 rounded-full z-10 shadow-sm">
-            {urls.map((_, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentIdx(idx);
-                }}
-                className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${
-                  currentIdx === idx ? 'bg-white scale-125' : 'bg-white/40 hover:bg-white/70'
-                }`}
-                title={`${idx + 1}번 사진으로 이동`}
-              />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+import { Edit2, ChevronDown, MoreVertical, Trash2 } from 'lucide-react';
+import { LAYOUT } from '../lib/styles';
 
 interface JournalFeedProps {
   favoriteTeam: KBOTeam;
   records: AttendanceRecord[];
+  onViewRecord?: (record: AttendanceRecord) => void;
   onEditRecord: (record: AttendanceRecord) => void;
   onDeleteRecord?: (recordId: string) => void;
 }
 
-export default function JournalFeed({ favoriteTeam, records, onEditRecord, onDeleteRecord }: JournalFeedProps) {
-  // 경기 일자 직관 기록 내림차순 정렬부
-  const sortedRecords = [...records].sort((a, b) => b.date.localeCompare(a.date));
+export default function JournalFeed({ favoriteTeam, records, onViewRecord, onEditRecord, onDeleteRecord }: JournalFeedProps) {
+  // 등록된 직관 기록 기반 유효 년도 목록 산출 (최신순 정렬)
+  const availableYears = React.useMemo(() => {
+    const years = new Set<number>();
+    years.add(2026);
+    records.forEach(r => {
+      const yr = parseInt(r.date.split('-')[0], 10);
+      if (!isNaN(yr)) years.add(yr);
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [records]);
+
+  const [selectedYear, setSelectedYear] = useState<string>('all');
+
+  // 경기 일자 직관 기록 내림차순 정렬 및 년도 필터링
+  const displayedRecords = React.useMemo(() => {
+    const sorted = [...records].sort((a, b) => b.date.localeCompare(a.date));
+    if (selectedYear === 'all') return sorted;
+    return sorted.filter(r => r.date.startsWith(selectedYear));
+  }, [records, selectedYear]);
 
   // 점 세개 메뉴 목록 드롭다운 보기 활성화
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-
-  // 선택한 직관인증사진 목록 풀스크린 라이트박스 팝업 줌 보기 활성화
-  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
-  const [lightboxActiveIdx, setLightboxActiveIdx] = useState<number>(0);
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-
-  const handleOpenLightbox = (urls: string[], idx: number) => {
-    setLightboxImages(urls);
-    setLightboxActiveIdx(idx);
-    setIsLightboxOpen(true);
-  };
 
   if (records.length === 0) {
     return (
@@ -144,22 +50,50 @@ export default function JournalFeed({ favoriteTeam, records, onEditRecord, onDel
 
   return (
     <div id="journal-feed-list" className="space-y-4">
-      <div className="flex justify-between items-center px-1">
+      <div className="flex items-center justify-between px-1">
         <h3 className="text-sm font-black text-zinc-900 flex items-center gap-1.5 uppercase font-display tracking-tight">
           <span>나의 직관 티켓북</span>
         </h3>
+
+        {/* 년도별 콤보박스 (우측 배치) */}
+        <div className="relative inline-flex items-center">
+          <select
+            id="ticket-year-select"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            aria-label="티켓북 년도 선택"
+            className="appearance-none bg-white border border-[#e5e8eb] hover:border-brand/40 text-[#191f28] font-black text-xs py-1.5 pl-3 pr-7 rounded-2xl shadow-2xs cursor-pointer transition focus:outline-hidden focus:border-brand flex items-center"
+          >
+            <option value="all">전체</option>
+            {availableYears.map(yr => (
+              <option key={yr} value={String(yr)}>
+                {yr}년
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="w-3.5 h-3.5 text-[#8b95a1] absolute right-2 pointer-events-none" />
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {sortedRecords.map(record => {
-          const oppTeamObj = getTeamById(record.opponentTeamId);
-          
-          return (
-            <div
-              key={record.id}
-              id={`ticket-feed-card-${record.id}`}
-              className="relative bg-white rounded-3xl border border-[#e5e8eb] shadow-xs overflow-hidden flex flex-col select-none hover:shadow-md transition-all duration-200 !p-0"
-            >
+      {displayedRecords.length === 0 ? (
+        <div className={LAYOUT.card + " text-center text-zinc-500 py-10 space-y-2"}>
+          <p className="text-xs font-bold text-zinc-700">
+            {selectedYear === 'all' ? '등록된 직관 티켓 기록이 없습니다.' : `${selectedYear}년도에 등록된 직관 티켓 기록이 없습니다.`}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {displayedRecords.map(record => {
+            const oppTeamObj = getTeamById(record.opponentTeamId);
+            
+            return (
+              <div
+                key={record.id}
+                id={`ticket-feed-card-${record.id}`}
+                onClick={() => onViewRecord ? onViewRecord(record) : onEditRecord(record)}
+                className="relative bg-white rounded-3xl border border-[#e5e8eb] shadow-xs overflow-hidden flex flex-col select-none hover:shadow-md hover:border-brand/40 transition-all duration-200 !p-0 cursor-pointer active:scale-[0.995]"
+                title="티켓 상세 보기"
+              >
               
               {/* 상단 섹션: 경기 정보 카드 */}
               <div className="flex flex-col w-full min-h-[120px]">
@@ -312,10 +246,14 @@ export default function JournalFeed({ favoriteTeam, records, onEditRecord, onDel
                 return (
                   <div className="w-full bg-zinc-50/50 px-4 pb-4 pt-2 flex flex-col gap-2 bg-zinc-50/60">
                     {hasImages && (
-                      <DiaryPhotoCarousel 
-                        urls={recordImages} 
-                        onPhotoClick={(idx) => handleOpenLightbox(recordImages, idx)} 
-                      />
+                      <div className="w-full aspect-square rounded-2xl border border-[#e5e8eb] overflow-hidden relative shadow-xs bg-zinc-50 mb-4 select-none">
+                        <img 
+                          referrerPolicy="no-referrer"
+                          src={recordImages[0]} 
+                          alt="직관 대표 사진"
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
                     )}
 
                     {hasFoods && (
@@ -373,81 +311,6 @@ export default function JournalFeed({ favoriteTeam, records, onEditRecord, onDel
             </div>
           );
         })}
-      </div>
-
-      {/* 확대 이미지 보기 원본 라이트박스 팝업 전체화면 모달 */}
-      {isLightboxOpen && lightboxImages.length > 0 && (
-        <div 
-          className="fixed inset-0 bg-black/95 backdrop-blur-md z-[9999] flex flex-col justify-between items-center p-4 select-none"
-          onClick={() => setIsLightboxOpen(false)}
-        >
-          {/* 상단 띠 헤더 내비게이션 인터페이스 구조 */}
-          <div className="w-full flex justify-between items-center text-white px-2 py-3 z-[10000]">
-            <span className="text-[10px] uppercase font-black tracking-widest bg-zinc-800 text-zinc-350 px-3 py-1.5 rounded-lg border border-zinc-700/50">
-              📸 직관 앨범 원본 보기
-            </span>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsLightboxOpen(false);
-              }}
-              className="bg-white text-zinc-900 border border-zinc-250 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 hover:bg-zinc-50 transition cursor-pointer active:scale-95 shadow-sm"
-              title="닫기"
-            >
-              <X className="w-4 h-4 stroke-[3]" />
-              <span>닫기</span>
-            </button>
-          </div>
-
-          {/* 선택한 특정 현재 사진의 디스플레이 프레임(슬라이더) */}
-          <div className="relative flex-1 w-full max-w-xl flex items-center justify-center p-4">
-            
-            {/* 이미지 캔버스 디스플레이 */}
-            <div className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl max-h-[65vh] aspect-square flex items-center justify-center w-full">
-              <img 
-                referrerPolicy="no-referrer"
-                src={lightboxImages[lightboxActiveIdx] || lightboxImages[0]} 
-                alt="확대 이미지" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-
-            {/* 라이트박스 이전/다음 좌우 내비게이션 화살표 */}
-            {lightboxImages.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLightboxActiveIdx((prev) => (prev === 0 ? lightboxImages.length - 1 : prev - 1));
-                  }}
-                  className="absolute left-1 sm:-left-4 bg-white border border-zinc-200 text-zinc-700 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-50 cursor-pointer active:scale-90 shadow-md transition-all z-20"
-                  title="이전 사진"
-                >
-                  <ChevronLeft className="w-5 h-5 stroke-[3]" />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLightboxActiveIdx((prev) => (prev === lightboxImages.length - 1 ? 0 : prev + 1));
-                  }}
-                  className="absolute right-1 sm:-right-4 bg-white border border-zinc-200 text-zinc-700 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-50 cursor-pointer active:scale-90 shadow-md transition-all z-20"
-                  title="다음 사진"
-                >
-                  <ChevronRight className="w-5 h-5 stroke-[3]" />
-                </button>
-              </>
-            )}
-
-          </div>
-
-          {/* 라이트박스 하단 슬라이드 인덱스 표출 페이지네이션 */}
-          <div className="bg-zinc-800 text-zinc-350 px-4 py-1.5 rounded-full mb-6 text-xs font-mono font-black border border-zinc-700 shadow-inner">
-            {lightboxActiveIdx + 1} / {lightboxImages.length}장
-          </div>
-
         </div>
       )}
     </div>

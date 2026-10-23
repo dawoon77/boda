@@ -10,9 +10,11 @@ import { TEXTS, TYPOGRAPHY } from '../lib/styles';
 export function AttendanceFairyCard({
   records,
   favoriteTeam,
+  yearBadge,
 }: {
   records: AttendanceRecord[];
   favoriteTeam: KBOTeam;
+  yearBadge?: string;
 }) {
   const totalGames = records.length;
   const wins = records.filter((r) => r.result === 'win').length;
@@ -78,10 +80,17 @@ export function AttendanceFairyCard({
     >
       <div className="absolute top-0 right-0 w-36 h-36 bg-brand/5 rounded-full blur-2xl pointer-events-none" />
 
-      <div className="flex items-center gap-2.5">
-        <span className={`${TYPOGRAPHY.bodyBold} uppercase tracking-wider`}>
-          나의 직관 요정 지수
-        </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className={`${TYPOGRAPHY.bodyBold} uppercase tracking-wider`}>
+            나의 직관 요정 지수
+          </span>
+          {yearBadge && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand/10 text-brand">
+              {yearBadge}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center justify-between mt-2">
@@ -175,8 +184,10 @@ export function AttendanceFairyCard({
  */
 export function AttendanceWinRateCalendarCard({
   records,
+  onViewRecord,
 }: {
   records: AttendanceRecord[];
+  onViewRecord?: (record: AttendanceRecord) => void;
 }) {
   const [currentYear, setCurrentYear] = useState(() => {
     if (records.length > 0) {
@@ -328,7 +339,16 @@ export function AttendanceWinRateCalendarCard({
 
           return (
             <div key={`day-${day}`} className="aspect-square flex items-center justify-center">
-              <button type="button" className={cellClass} title={titleText}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (hasRecord && onViewRecord) {
+                    onViewRecord(dayRecords[0]);
+                  }
+                }}
+                className={cellClass}
+                title={titleText}
+              >
                 <span>{day}</span>
               </button>
             </div>
@@ -345,9 +365,11 @@ export function AttendanceWinRateCalendarCard({
 export function OpponentWinRateCard({
   records,
   favoriteTeam,
+  yearBadge,
 }: {
   records: AttendanceRecord[];
   favoriteTeam: KBOTeam;
+  yearBadge?: string;
 }) {
   const [showAllOpponents, setShowAllOpponents] = useState(false);
 
@@ -391,9 +413,16 @@ export function OpponentWinRateCard({
       className="bg-white border border-[#e5e8eb] p-4 rounded-3xl space-y-3.5 shadow-xs cursor-pointer select-none active:scale-[0.995] hover:border-brand/40 transition-all duration-200 group"
     >
       <div className="flex items-center justify-between">
-        <h4 className={`${TYPOGRAPHY.bodyBold} flex items-center gap-1.5 leading-none`}>
-          <span>{TEXTS.opponentWinRate}</span>
-        </h4>
+        <div className="flex items-center gap-2">
+          <h4 className={`${TYPOGRAPHY.bodyBold} flex items-center gap-1.5 leading-none`}>
+            <span>{TEXTS.opponentWinRate}</span>
+          </h4>
+          {yearBadge && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand/10 text-brand">
+              {yearBadge}
+            </span>
+          )}
+        </div>
         <span className="text-[10px] font-bold text-[#8b95a1] group-hover:text-brand transition-colors flex items-center gap-0.5">
           {showAllOpponents ? (
             <>접기 <ChevronUp className="w-3 h-3" /></>

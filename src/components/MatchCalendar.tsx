@@ -9,6 +9,7 @@ interface MatchCalendarProps {
   matches: Match[];
   attendanceRecords: AttendanceRecord[];
   onMatchSelect: (match: Match) => void;
+  onViewRecord?: (record: AttendanceRecord) => void;
   onAddCustomRecord: () => void;
 }
 
@@ -17,6 +18,7 @@ export default function MatchCalendar({
   matches,
   attendanceRecords,
   onMatchSelect,
+  onViewRecord,
   onAddCustomRecord
 }: MatchCalendarProps) {
   // 기본값: 2026년 5월 설정
@@ -54,9 +56,19 @@ export default function MatchCalendar({
     return currentMonthMatches.find(m => m.date === targetDateStr);
   };
 
-  // 특정 경기 ID에 대한 직관 기록(참석 정보)을 가져오는 헬퍼 함수
-  const getAttendanceForMatch = (matchId: string): AttendanceRecord | undefined => {
-    return attendanceRecords.find(r => r.matchId === matchId);
+  // 특정 경기 또는 날짜에 대한 직관 기록(참석 정보)을 가져오는 헬퍼 함수
+  const getAttendanceForMatchOrDay = (match?: Match, day?: number): AttendanceRecord | undefined => {
+    if (match) {
+      const found = attendanceRecords.find(r => r.id === match.id || r.matchId === match.id || r.date === match.date);
+      if (found) return found;
+    }
+    if (day !== undefined) {
+      const dayStr = day < 10 ? `0${day}` : `${day}`;
+      const monthStr = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
+      const targetDateStr = `${currentYear}-${monthStr}-${dayStr}`;
+      return attendanceRecords.find(r => r.date === targetDateStr);
+    }
+    return undefined;
   };
 
   // 요일 헤더 목록 (일요일 ~ 토요일)
@@ -101,14 +113,20 @@ export default function MatchCalendar({
     if (isLoss) textColor = 'text-zinc-400/80';
 
     const hasMatch = !!match;
-    const attRecord = match ? getAttendanceForMatch(match.id) : undefined;
+    const attRecord = getAttendanceForMatchOrDay(match, day);
     const isAttended = !!attRecord;
 
     cells.push(
       <div
         key={`day-${day}`}
         id={`day-cell-${day}`}
-        onClick={() => match && onMatchSelect(match)}
+        onClick={() => {
+          if (attRecord && onViewRecord) {
+            onViewRecord(attRecord);
+          } else if (match) {
+            onMatchSelect(match);
+          }
+        }}
         className={`min-h-[82px] border rounded-2xl flex flex-col justify-between p-2 cursor-pointer transition-all duration-200 ${
           hasMatch
             ? isLoss
@@ -116,7 +134,9 @@ export default function MatchCalendar({
               : isAttended
                 ? 'border-amber-300 bg-amber-50/70 hover:bg-amber-100/50 shadow-[0_2px_8px_rgba(245,158,11,0.04)]'
                 : 'border-zinc-200 bg-zinc-50/20 hover:bg-zinc-50 shadow-sm'
-            : 'border-zinc-100 bg-zinc-100/20 cursor-default hover:bg-zinc-100/40 opacity-70'
+            : isAttended
+              ? 'border-amber-300 bg-amber-50/70 hover:bg-amber-100/50 shadow-[0_2px_8px_rgba(245,158,11,0.04)] cursor-pointer'
+              : 'border-zinc-100 bg-zinc-100/20 cursor-default hover:bg-zinc-100/40 opacity-70'
         }`}
       >
         {/* 날짜 번호 및 홈/어웨이 표시기 */}

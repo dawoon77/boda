@@ -7,9 +7,10 @@ import { TEXTS, TYPOGRAPHY } from '../lib/styles';
 interface StatsDashboardProps {
   favoriteTeam: KBOTeam;
   records: AttendanceRecord[];
+  onViewRecord?: (record: AttendanceRecord) => void;
 }
 
-export default function StatsDashboard({ favoriteTeam, records }: StatsDashboardProps) {
+export default function StatsDashboard({ favoriteTeam, records, onViewRecord }: StatsDashboardProps) {
   const [showAllOpponents, setShowAllOpponents] = React.useState(false);
 
   // 추출 가능한 고유 년도 목록 (과거 기록 + 기본 KBO 시즌 년도)
@@ -440,6 +441,11 @@ export default function StatsDashboard({ favoriteTeam, records }: StatsDashboard
                 <div key={`day-${day}`} className="aspect-square flex items-center justify-center">
                   <button
                     type="button"
+                    onClick={() => {
+                      if (hasRecord && onViewRecord) {
+                        onViewRecord(dayRecords[0]);
+                      }
+                    }}
                     className={cellClass}
                     title={titleText}
                   >
