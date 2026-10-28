@@ -17,6 +17,8 @@ import PlayerRankings from './components/PlayerRankings';
 import BaseballShopping from './components/BaseballShopping';
 import MyProfileTab from './components/MyProfileTab';
 import CheerSongsTab from './components/CheerSongsTab';
+import { ClubTab } from './components/ClubTab';
+import { BaseballIcon } from './components/BaseballIcon';
 import NoticeList from './components/NoticeList';
 import NoticeDetail from './components/NoticeDetail';
 import TermsList from './components/TermsList';
@@ -40,6 +42,7 @@ export default function App() {
   const [isFormOpen, setIsFormOpen] = useState(false); // 직관 기록 작성 폼(팝업)이 열려 있는지 여부
   const [activeTab, setActiveTab] = useState<'home' | 'records' | 'cheer' | 'shopping' | 'my'>('home'); // 하단 탭 중 현재 선택된 탭
   const [recordsSubTab, setRecordsSubTab] = useState<'feed' | 'stats'>('feed'); // 직관기록 탭 안의 하위 탭
+  const [clubSubTab, setClubSubTab] = useState<'youtube' | 'goods'>('youtube'); // 구단 탭 안의 하위 탭 (구단 유튜브 / 구단 굿즈)
   const [currentTime, setCurrentTime] = useState(''); // 화면 맨 위 상태바에 표시하는 현재 시각 (HH:MM, 1분마다 갱신)
   const [isEditingProfile, setIsEditingProfile] = useState(false); // 프로필 수정 화면을 보여줄지 여부
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false); // 홈 상단 팀 이름을 눌렀을 때 나오는 응원팀 선택창(바텀시트)이 열려 있는지 여부
@@ -445,51 +448,32 @@ export default function App() {
                     </header>
                   )}
 
-                  {/* 2.5 응원가 탭이 활성화되었을 때의 상단 프로필 헤더 style (왼쪽에 응원가, 오른쪽에 알림 아이콘) */}
-                  {activeTab === 'cheer' && favoriteTeamObj && (
-                    <header id="top-bar-cheer" className="bg-white px-5 py-4 border-b border-[#f2f4f6] shrink-0 flex items-center justify-between sticky top-0 z-35 animate-fadeIn">
-                      <div>
-                        <span className="text-lg font-black text-[#191f28] tracking-tight">
-                          응원가
-                        </span>
-                      </div>
-
-                      {/* 우측 종아이콘 알림 영역 */}
-                      <div className="flex items-center gap-1">
-                        <div className="relative">
-                          <button 
-                            id="btn-alert-notifications-cheer"
-                            onClick={() => setShowNotifications(!showNotifications)}
-                            className="p-2 text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50 rounded-xl transition relative cursor-pointer"
-                            title="알림 피드"
-                          >
-                            <Bell className="w-5 h-5 stroke-[2.2]" />
-                            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand rounded-full" />
-                          </button>
-
-                          {/* 앱 내부 간편 소알림 팝오버 팝업 */}
-                          {showNotifications && (
-                            <>
-                              <div className="fixed inset-0 z-40 bg-black/[0.01]" onClick={() => setShowNotifications(false)} />
-                              <div id="cheer-notifications-popover" className="absolute right-0 top-11 z-50 w-64 bg-white border border-[#e5e8eb] rounded-2xl shadow-lg p-4 animate-fadeIn text-xs text-left font-normal select-none">
-                                <div className="flex justify-between items-center pb-2 mb-2 border-b border-zinc-100">
-                                  <h4 className="font-bold text-zinc-900">알림 피드 🔔</h4>
-                                  <button onClick={() => setShowNotifications(false)} className="text-[10px] text-zinc-400 hover:text-[#4e5968] font-semibold cursor-pointer">닫기</button>
-                                </div>
-                                <div className="space-y-3">
-                                  <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-100 space-y-1">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-brand" />
-                                      <p className="font-bold text-zinc-700 text-[10px]">KBO 실시간 연동 완료</p>
-                                    </div>
-                                    <p className="text-zinc-500 text-[10px] leading-normal font-medium">KBO 리그 구단 경기 일정 및 실시간 순위 정보가 모두 업그레이드되었습니다.</p>
-                                  </div>
-                                  <p className="text-[10px] text-zinc-400 text-center py-0.5 font-medium">읽지 않은 알림이 더 이상 없습니다.</p>
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                  {/* 2.5 구단 탭이 활성화되었을 때의 상단 서브탭 바 (구단 / 공식 스토어) */}
+                  {activeTab === 'cheer' && (
+                    <header id="top-bar-club" className="bg-white px-5 pt-3 pb-2" style={{ flexShrink: 0 }}>
+                      <div className="grid grid-cols-2 gap-1 bg-zinc-100 p-1 rounded-full border border-zinc-200/50">
+                        <button
+                          id="btn-subtab-club-main"
+                          onClick={() => setClubSubTab('youtube')}
+                          className={`py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
+                            clubSubTab === 'youtube'
+                              ? 'bg-brand text-white shadow-sm border border-transparent'
+                              : 'text-zinc-500 hover:text-zinc-800'
+                          }`}
+                        >
+                          구단
+                        </button>
+                        <button
+                          id="btn-subtab-club-store"
+                          onClick={() => setClubSubTab('goods')}
+                          className={`py-2 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer ${
+                            clubSubTab === 'goods'
+                              ? 'bg-brand text-white shadow-sm border border-transparent'
+                              : 'text-zinc-500 hover:text-zinc-800'
+                          }`}
+                        >
+                          공식 스토어
+                        </button>
                       </div>
                     </header>
                   )}
@@ -672,8 +656,12 @@ export default function App() {
                     )}
 
                     {activeTab === 'cheer' && favoriteTeamObj && (
-                      /* 응원가 가사 및 사운드 오르간 메들리 보드 */
-                      <CheerSongsTab favoriteTeam={favoriteTeamObj} />
+                      /* 구단 탭: 구단 유튜브 & 구단 굿즈 */
+                      <ClubTab
+                        favoriteTeam={favoriteTeamObj}
+                        activeSubTab={clubSubTab}
+                        onSubTabChange={setClubSubTab}
+                      />
                     )}
 
                     {activeTab === 'shopping' && favoriteTeamObj && (
@@ -896,16 +884,16 @@ export default function App() {
                     <span className="text-[10px] font-bold tracking-tight">직관기록</span>
                   </button>
 
-                  {/* 중간: 야구공 응원가 탭 영역 */}
+                  {/* 중간: 구단 탭 영역 (야구공 아이콘) */}
                   <button
-                    id="tab-btn-cheer"
+                    id="tab-btn-club"
                     onClick={() => { setActiveTab('cheer'); setShowMySettings(false); }}
                     className={`flex flex-col items-center gap-1 cursor-pointer transition ${
                       activeTab === 'cheer' ? 'text-brand scale-[1.02] font-semibold' : 'text-[#b0b8c1] hover:text-[#4e5968]'
                     }`}
                   >
-                    <Dribbble className="w-5.5 h-5.5 stroke-[2.0] animate-pulse" />
-                    <span className="text-[10px] font-bold tracking-tight">응원가</span>
+                    <BaseballIcon className="w-5.5 h-5.5 stroke-[2.0]" />
+                    <span className="text-[10px] font-bold tracking-tight">구단</span>
                   </button>
 
                   {/* 3. 굿즈 쇼핑 탭 영역 */}
