@@ -141,3 +141,61 @@ export interface HomeSectionConfig {
   description: string;
   enabled: boolean;
 }
+
+// ─── 커뮤니티 ───
+export type CommunityCategory = 'seat' | 'food' | 'goods' | 'etc'; // 좌석 / 음식 / 굿즈 / 기타
+
+// 한눈에 보기 항목 하나 (예: { label: '응원 분위기', value: '응원석이라 열기 최고' })
+export interface CommunityHighlight {
+  label: string;
+  value: string;
+}
+
+export interface CommunityComment {
+  id: string;
+  author: string;
+  content: string;
+  createdAt: string;   // 작성 시각 (ISO 형식)
+  parentId?: string;   // 답글이면 원래 댓글의 id (답글의 답글도 같은 원래 댓글 아래에 붙음)
+  mentionTo?: string;  // 답글 대상 닉네임 (@닉네임 표시용, 나중에 알림 보낼 때도 사용)
+  editedAt?: string;   // 수정한 시각 (있으면 "(수정됨)" 표시)
+  isDeleted?: boolean; // 삭제됨 (답글이 달린 댓글을 지우면 "삭제된 댓글입니다."로 자리만 남김)
+}
+
+// 답글을 달 때 넘겨주는 정보
+export interface CommentReply {
+  parentId: string;    // 원래 댓글 id
+  mentionTo: string;   // 답글 대상 닉네임
+}
+
+export interface CommunityPost {
+  id: string;
+  category: CommunityCategory;
+  author: string;
+  createdAt: string;        // 작성 시각 (ISO 형식)
+  editedAt?: string;        // 글을 수정한 시각 (있으면 "수정됨" 표시)
+  content: string;          // 후기·내용 (직접 쓴 글)
+  highlights?: CommunityHighlight[]; // 한눈에 보기 항목 (후기 도우미에서 고른 것, 기타 제외)
+  imageUrls: string[];      // 사진 주소 목록
+  likeCount: number;        // 좋아요 수
+  likedByMe: boolean;       // 내가 좋아요를 눌렀는지
+  comments: CommunityComment[];
+
+  // 카테고리마다 쓰는 항목이 달라서 전부 선택(?)으로 둠
+  stadium?: string;         // 좌석·음식: 구장
+  teamId?: string;          // 굿즈: 구단 / 기타: 구단 (없으면 "전체")
+  price?: number;           // 좌석·음식·굿즈: 가격
+  seatZone?: string;        // 좌석: 구역
+  seatBlock?: string;       // 좌석: 블록
+  seatRow?: string;         // 좌석: 열
+  restaurant?: string;      // 음식: 음식점
+  menu?: string;            // 음식: 메뉴
+  goodsType?: string;       // 굿즈: 종류
+  productName?: string;     // 굿즈: 상품명 (예: 먼작귀 콜라보 인형, 서울 유니폼)
+  purchasePlace?: string;   // 굿즈: 구매처
+  size?: string;            // 굿즈: 사이즈 (유니폼일 때)
+  title?: string;           // 제목 (모든 카테고리, 글쓰기에서 필수)
+}
+
+// 글쓰기 화면에서 넘겨주는 값 (id·작성자·날짜·좋아요·댓글은 App에서 붙임)
+export type CommunityPostInput = Omit<CommunityPost, 'id' | 'author' | 'createdAt' | 'editedAt' | 'likeCount' | 'likedByMe' | 'comments'>;

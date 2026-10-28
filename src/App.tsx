@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { UserProfile, Match, AttendanceRecord, Notice, Term, Inquiry, InquiryCategory, Player, HomeSectionConfig } from './types';
+import { UserProfile, Match, AttendanceRecord, Notice, Term, Inquiry, InquiryCategory, Player, HomeSectionConfig, CommunityPost, CommunityPostInput, CommentReply } from './types';
 import { KBO_TEAMS, MATCHES_DATA, getTeamById } from './data/kboData';
 import { NOTICES } from './data/notices';
 import { TERMS } from './data/terms';
@@ -14,7 +14,8 @@ import StatsDashboard from './components/StatsDashboard';
 import JournalFeed from './components/JournalFeed';
 import TeamStandings, { SIMULATED_STANDINGS } from './components/TeamStandings';
 import PlayerRankings from './components/PlayerRankings';
-import BaseballShopping from './components/BaseballShopping';
+import CommunityTab from './components/CommunityTab';
+import { SAMPLE_COMMUNITY_POSTS } from './data/communityPosts';
 import MyProfileTab from './components/MyProfileTab';
 import CheerSongsTab from './components/CheerSongsTab';
 import { ClubTab } from './components/ClubTab';
@@ -30,7 +31,7 @@ import FavoritePlayersScreen from './components/FavoritePlayersScreen';
 import FavoritePlayersStats from './components/FavoritePlayersStats';
 import HomeSectionSettingsModal, { DEFAULT_HOME_SECTIONS } from './components/HomeSectionSettingsModal';
 import { AttendanceFairyCard, AttendanceWinRateCalendarCard, OpponentWinRateCard } from './components/ReportStatsCards';
-import { Calendar, Trophy, BarChart2, BookOpen, Clock, User, ShieldAlert, Home, FileText, ShoppingBag, Plus, Bell, ChevronDown, Check, Settings, ChevronLeft, ChevronRight, Dribbble, SlidersHorizontal } from 'lucide-react';
+import { Calendar, Trophy, BarChart2, BookOpen, Clock, User, ShieldAlert, Home, FileText, MessageCircle, Plus, Bell, ChevronDown, Check, Settings, ChevronLeft, ChevronRight, Dribbble, SlidersHorizontal } from 'lucide-react';
 
 export default function App() {
   // 1. 앱 주요 최상위 반응형 상태 정의부
@@ -40,7 +41,7 @@ export default function App() {
   const [selectedRecordToEdit, setSelectedRecordToEdit] = useState<AttendanceRecord | undefined>(undefined); // 수정할 기존 기록
   const [formInitialMode, setFormInitialMode] = useState<'view' | 'edit'>('edit'); // 폼 오픈 시 상세(view) 또는 수정(edit) 모드
   const [isFormOpen, setIsFormOpen] = useState(false); // 직관 기록 작성 폼(팝업)이 열려 있는지 여부
-  const [activeTab, setActiveTab] = useState<'home' | 'records' | 'cheer' | 'shopping' | 'my'>('home'); // 하단 탭 중 현재 선택된 탭
+  const [activeTab, setActiveTab] = useState<'home' | 'records' | 'cheer' | 'community' | 'my'>('home'); // 하단 탭 중 현재 선택된 탭
   const [recordsSubTab, setRecordsSubTab] = useState<'feed' | 'stats'>('feed'); // 직관기록 탭 안의 하위 탭
   const [clubSubTab, setClubSubTab] = useState<'youtube' | 'goods'>('youtube'); // 구단 탭 안의 하위 탭 (구단 유튜브 / 구단 굿즈)
   const [currentTime, setCurrentTime] = useState(''); // 화면 맨 위 상태바에 표시하는 현재 시각 (HH:MM, 1분마다 갱신)
@@ -57,6 +58,7 @@ export default function App() {
   const [isInquiryFormOpen, setIsInquiryFormOpen] = useState(false); // 문의 작성 화면이 열려 있는지 여부
   const [homeSections, setHomeSections] = useState<HomeSectionConfig[]>(DEFAULT_HOME_SECTIONS); // 홈 화면 섹션 목록 및 순서
   const [isHomeSettingsOpen, setIsHomeSettingsOpen] = useState(false); // 홈 화면 섹션 설정 모달 열림 여부
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(SAMPLE_COMMUNITY_POSTS); // 커뮤니티 글 목록 (새로고침 전까지 유지)
   
   // 2. 마운트 시 브라우저 로컬 저장소로부터 저장 데이터 불러오기 및 초기 세팅
   useEffect(() => {
@@ -274,12 +276,120 @@ export default function App() {
     setFavoritePlayers([]);
     setMySubPage(null);
     setShowMySettings(false);
-    setFavoritePlayers([]);
     setHomeSections(DEFAULT_HOME_SECTIONS);
+    setCommunityPosts(SAMPLE_COMMUNITY_POSTS);
     setActiveTab('home');
     setProfile(null); // 프로필이 없어지면 로그인 화면이 보임
   }  
   
+  // 커뮤니티: 새 글 등록 (id·작성자·시각·좋아요·댓글을 붙여 맨 앞에 추가)
+  const handleCreatePost = (input: CommunityPostInput) => {
+    const now = new Date();
+    const newPost: CommunityPost = {
+      ...input,
+      id: `post-${now.getTime()}`,
+      author: profile?.nickname || '익명',
+      createdAt: now.toISOString(),
+      likeCount: 0,
+      likedByMe: false,
+      comments: [],
+    };
+    setCommunityPosts((prev) => [newPost, ...prev]);
+  };
+
+  // 커뮤니티: 내 글 수정 (작성자·작성 시각·좋아요·댓글은 그대로 두고 내용만 새로 채움)
+  //  - 카테고리를 바꿔 수정할 수도 있어서, 기존 글에 덮어쓰지 않고 새로 만들어 이전 카테고리 항목이 남지 않게 함
+  const handleUpdatePost = (postId: string, input: CommunityPostInput) => {
+    const now = new Date().toISOString();
+    setCommunityPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              id: post.id,
+              author: post.author,
+              createdAt: post.createdAt,
+              likeCount: post.likeCount,
+              likedByMe: post.likedByMe,
+              comments: post.comments,
+              ...input,
+              editedAt: now,
+            }
+          : post
+      )
+    );
+  };
+
+  // 커뮤니티: 내 글 삭제
+  const handleDeletePost = (postId: string) => {
+    setCommunityPosts((prev) => prev.filter((post) => post.id !== postId));
+  };
+
+  // 커뮤니티: 좋아요 누르기/취소 (눌렀으면 -1, 안 눌렀으면 +1)
+  const handleToggleLike = (postId: string) => {
+    setCommunityPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? { ...post, likedByMe: !post.likedByMe, likeCount: post.likeCount + (post.likedByMe ? -1 : 1) }
+          : post
+      )
+    );
+  };
+
+  // 커뮤니티: 댓글 추가 (reply가 있으면 답글: 원래 댓글 id와 답글 대상 닉네임을 같이 저장)
+  // TODO: 서버 연결 후 reply.mentionTo 사용자에게 "답글이 달렸어요" 알림 보내기
+  const handleAddComment = (postId: string, content: string, reply?: CommentReply) => {
+    const now = new Date();
+    setCommunityPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              comments: [
+                ...post.comments,
+                {
+                  id: `comment-${now.getTime()}`,
+                  author: profile?.nickname || '익명',
+                  content,
+                  createdAt: now.toISOString(),
+                  ...reply, // 답글이면 parentId, mentionTo가 들어감
+                },
+              ],
+            }
+          : post
+      )
+    );
+  };
+
+  // 커뮤니티: 댓글 수정 (내용을 바꾸고 수정 시각 기록)
+  const handleEditComment = (postId: string, commentId: string, content: string) => {
+    const now = new Date().toISOString();
+    setCommunityPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? { ...post, comments: post.comments.map((c) => (c.id === commentId ? { ...c, content, editedAt: now } : c)) }
+          : post
+      )
+    );
+  };
+
+  // 커뮤니티: 댓글 삭제
+  //  - 답글이 달린 댓글: "삭제된 댓글입니다."로 자리만 남김 (답글이 갈 곳을 잃지 않게)
+  //  - 답글이 없는 댓글: 완전히 지움
+  //  - 삭제 표시만 남은 댓글에 답글이 하나도 안 남으면 그 자리도 정리
+  const handleDeleteComment = (postId: string, commentId: string) => {
+    setCommunityPosts((prev) =>
+      prev.map((post) => {
+        if (post.id !== postId) return post;
+        const hasReplies = post.comments.some((c) => c.parentId === commentId);
+        let comments = hasReplies
+          ? post.comments.map((c) => (c.id === commentId ? { ...c, content: '', isDeleted: true } : c))
+          : post.comments.filter((c) => c.id !== commentId);
+        comments = comments.filter((c) => !(c.isDeleted && !comments.some((r) => r.parentId === c.id)));
+        return { ...post, comments };
+      })
+    );
+  };
+
   const resetMyTab = () => {
     setMySubPage(null);
     setSelectedNotice(null);
@@ -664,11 +774,6 @@ export default function App() {
                       />
                     )}
 
-                    {activeTab === 'shopping' && favoriteTeamObj && (
-                      /* 야구장 굿즈 딜 전용 쇼핑몰 상품 목록 탭 */
-                      <BaseballShopping favoriteTeam={favoriteTeamObj} />
-                    )}
-
                     {activeTab === 'my' && favoriteTeamObj && (
                       !showMySettings ? (
                         /* 마이페이지 프로필 상태 정보 및 미션 목표 성취 탭 */
@@ -855,6 +960,22 @@ export default function App() {
                       onEdit={() => setMySubPage('favoritePlayers')}   // 기록 → 편집
                       onBack={() => setMySubPage(null)}               // 기록 → 마이페이지
                     />
+                  )}
+
+                  {/* 커뮤니티 탭 (헤더·목록·상세·글쓰기를 CommunityTab이 모두 그림) */}
+                  {activeTab === 'community' && favoriteTeamObj && (
+                    <CommunityTab
+                      posts={communityPosts}
+                      myNickname={profile.nickname}
+                      favoriteTeamId={favoriteTeamObj.id}
+                      onCreatePost={handleCreatePost}
+                      onUpdatePost={handleUpdatePost}
+                      onDeletePost={handleDeletePost}
+                      onToggleLike={handleToggleLike}
+                      onAddComment={handleAddComment}
+                      onEditComment={handleEditComment}
+                      onDeleteComment={handleDeleteComment}
+                    />
                   )}                 
                 </div>  
                 
@@ -896,16 +1017,16 @@ export default function App() {
                     <span className="text-[10px] font-bold tracking-tight">구단</span>
                   </button>
 
-                  {/* 3. 굿즈 쇼핑 탭 영역 */}
+                  {/* 4. 커뮤니티 탭 영역 */}
                   <button
-                    id="tab-btn-shopping"
-                    onClick={() => { setActiveTab('shopping'); setShowMySettings(false); }}
+                    id="tab-btn-community"
+                    onClick={() => { setActiveTab('community'); setShowMySettings(false); }}
                     className={`flex flex-col items-center gap-1 cursor-pointer transition ${
-                      activeTab === 'shopping' ? 'text-brand scale-[1.02] font-semibold' : 'text-[#b0b8c1] hover:text-[#4e5968]'
+                      activeTab === 'community' ? 'text-brand scale-[1.02] font-semibold' : 'text-[#b0b8c1] hover:text-[#4e5968]'
                     }`}
                   >
-                    <ShoppingBag className="w-5.5 h-5.5 stroke-[2.0]" />
-                    <span className="text-[10px] font-bold tracking-tight">야구 쇼핑</span>
+                    <MessageCircle className="w-5.5 h-5.5 stroke-[2.0]" />
+                    <span className="text-[10px] font-bold tracking-tight">커뮤니티</span>
                   </button>
 
                   {/* 4. 마이페이지 프로필 변경 탭 영역 */}
