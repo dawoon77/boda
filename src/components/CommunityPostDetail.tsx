@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ChevronLeft, Heart, MessageCircle, Send, X, Check, CornerDownRight, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { ChevronLeft, Heart, MessageCircle, Send, X, Check, CornerDownRight, MoreVertical, Pencil, Trash2, Edit2 } from 'lucide-react';
 import { CommunityPost, CommunityComment, CommentReply } from '../types';
 import {
   CATEGORY_LABELS,
@@ -46,7 +46,6 @@ function getInfoRows(post: CommunityPost): { label: string; value: string }[] {
     rows.push(
       { label: '구단', value: getTeamName(post.teamId) },
       { label: '상품명', value: post.productName },
-      { label: '종류', value: post.goodsType },
       { label: '사이즈', value: post.size },
       { label: '구매처', value: post.purchasePlace },
       { label: '가격', value: formatPrice(post.price) },
@@ -77,6 +76,7 @@ export default function CommunityPostDetail({
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);    // 삭제 확인창 대상 (글 또는 댓글)
   const [isMenuOpen, setIsMenuOpen] = useState(false);                            // 내 글 ⋮ 메뉴 열림 여부
   const [photoIndex, setPhotoIndex] = useState(0);                                // 지금 보고 있는 사진 번호 (0부터)
+  const [expandedReplyIds, setExpandedReplyIds] = useState<Set<string>>(new Set()); // 답글 더보기로 펼친 원래 댓글 id 목록
 
   const isMyPost = post.author === myNickname;
   const headline = getPostHeadline(post);
@@ -88,6 +88,19 @@ export default function CommunityPostDetail({
   const rootComments = post.comments.filter((c) => !c.parentId);
   const repliesOf = (commentId: string) => post.comments.filter((c) => c.parentId === commentId);
   const commentCount = post.comments.filter((c) => !c.isDeleted).length; // 삭제된 댓글은 세지 않음
+
+  // 답글 더보기 / 접기 토글
+  const toggleReplies = (commentId: string) => {
+    setExpandedReplyIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(commentId)) {
+        next.delete(commentId);
+      } else {
+        next.add(commentId);
+      }
+      return next;
+    });
+  };
 
   // 사진을 옆으로 넘기면 몇 번째 사진인지 계산
   //  - 얼마나 넘겼는지 비율(0 = 맨 앞, 1 = 맨 끝)을 사진 번호로 바꿈
@@ -102,7 +115,9 @@ export default function CommunityPostDetail({
 
   // 답글 달기: 답글에 답글을 달아도 같은 원래 댓글 아래에 붙도록 parentId는 원래 댓글 id로
   const startReply = (target: CommunityComment) => {
-    setReplyTarget({ parentId: target.parentId ?? target.id, mentionTo: target.author });
+    const parentId = target.parentId ?? target.id;
+    setReplyTarget({ parentId, mentionTo: target.author });
+    setExpandedReplyIds((prev) => new Set([...prev, parentId])); // 답글 달기 클릭 시 답글 목록 자동 펼침
     inputRef.current?.focus();
   };
 
@@ -110,6 +125,9 @@ export default function CommunityPostDetail({
     e.preventDefault(); // 폼 기본 동작(페이지 새로고침) 막기
     const text = comment.trim();
     if (!text) return;
+    if (replyTarget) {
+      setExpandedReplyIds((prev) => new Set([...prev, replyTarget.parentId])); // 답글 작성 완료 시 자동 펼침
+    }
     onAddComment(text, replyTarget ?? undefined);
     setComment('');
     setReplyTarget(null);
@@ -148,13 +166,13 @@ export default function CommunityPostDetail({
     setDeleteTarget(null);
   };
 
-  // 댓글 한 개 그리기: 말풍선 배경 (내가 쓴 댓글만 조금 더 진한 회색) + 답글이면 앞에 @닉네임
+  // 댓글 한 개 그리기: 회색 박스 제거 및 날짜 시간 텍스트 굵기 조정 (font-normal)
   const renderComment = (c: CommunityComment) => {
     // 삭제된 댓글 (답글이 남아 있어서 자리만 남은 경우)
     if (c.isDeleted) {
       return (
-        <div className="rounded-2xl px-3.5 py-3 bg-[#f2f4f6]">
-          <p className="text-xs font-medium text-[#8b95a1]">삭제된 댓글입니다.</p>
+        <div className="py-1">
+          <p className="text-xs font-normal text-[#8b95a1]">삭제된 댓글입니다.</p>
         </div>
       );
     }
@@ -163,11 +181,11 @@ export default function CommunityPostDetail({
     const isEditing = editingId === c.id;
 
     return (
-      <div className={`rounded-2xl px-3.5 py-3 space-y-0.5 ${isMine ? 'bg-[#e5e8eb]' : 'bg-[#f2f4f6]'}`}>
+      <div className="space-y-1 py-1">
         <p className="text-[11px] font-bold text-[#191f28]">
           {c.author}
-          <span className="font-semibold text-[#8b95a1] ml-1.5">{formatPostDate(c.createdAt, true)}</span>
-          {c.editedAt && <span className="font-semibold text-[#8b95a1] ml-1">(수정됨)</span>}
+          <span className="font-normal text-[#6b7684] ml-1.5">{formatPostDate(c.createdAt, true)}</span>
+          {c.editedAt && <span className="font-normal text-[#6b7684] ml-1">(수정됨)</span>}
         </p>
 
         {isEditing ? (
@@ -180,7 +198,7 @@ export default function CommunityPostDetail({
               maxLength={300}
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
-              className="flex-1 min-w-0 bg-white border border-[#e5e8eb] focus:border-brand rounded-xl px-3 py-2 text-xs font-medium text-[#191f28] focus:outline-none resize-none transition"
+              className="flex-1 min-w-0 bg-[#f9fafb] border border-[#e5e8eb] focus:border-brand rounded-xl px-3 py-2 text-xs font-medium text-[#191f28] focus:outline-none resize-none transition"
             />
             <button
               id="btn-cancel-comment-edit"
@@ -209,7 +227,7 @@ export default function CommunityPostDetail({
               {c.content}
             </p>
             {/* 답글 달기 (+ 내 댓글이면 수정·삭제) */}
-            <div className="flex items-center gap-2.5 text-[10px] font-bold text-[#8b95a1]">
+            <div className="flex items-center gap-2.5 text-[10px] font-semibold text-[#8b95a1] pt-0.5">
               <button type="button" onClick={() => startReply(c)} className="hover:text-brand transition cursor-pointer">
                 답글 달기
               </button>
@@ -255,7 +273,7 @@ export default function CommunityPostDetail({
           {isMyPost && (
             <button
               id="btn-post-menu"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => setIsMenuOpen(true)}
               className="text-[#8b95a1] hover:text-[#4e5968] hover:bg-[#f2f4f6] p-1.5 rounded-full transition cursor-pointer"
               aria-label="글 메뉴"
             >
@@ -263,37 +281,7 @@ export default function CommunityPostDetail({
             </button>
           )}
         </div>
-
-        {/* ⋮ 메뉴: 수정 / 삭제 */}
-        {isMenuOpen && (
-          <div className="absolute right-5 top-14 z-40 w-32 bg-white rounded-2xl border border-[#e5e8eb] shadow-lg py-1.5 animate-fadeIn">
-            <button
-              id="btn-edit-post"
-              onClick={() => {
-                setIsMenuOpen(false);
-                onEditPost();
-              }}
-              className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] font-bold text-[#191f28] hover:bg-[#f9fafb] cursor-pointer"
-            >
-              <Pencil className="w-4 h-4 text-[#8b95a1]" />
-              수정하기
-            </button>
-            <button
-              id="btn-delete-post"
-              onClick={() => {
-                setIsMenuOpen(false);
-                setDeleteTarget({ kind: 'post' });
-              }}
-              className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] font-bold text-[#f04452] hover:bg-[#fef3f4] cursor-pointer"
-            >
-              <Trash2 className="w-4 h-4" />
-              삭제하기
-            </button>
-          </div>
-        )}
       </header>
-      {/* 메뉴 바깥을 누르면 메뉴 닫기 */}
-      {isMenuOpen && <div className="absolute inset-0 z-30" onClick={() => setIsMenuOpen(false)} />}
 
       <main className="flex-1 overflow-y-auto">
         <article className="px-5 pt-5 pb-6 space-y-5">
@@ -319,7 +307,7 @@ export default function CommunityPostDetail({
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-bold text-[#191f28] truncate">{post.author}</p>
-                <p className="text-[11px] font-semibold text-[#8b95a1]">
+                <p className="text-[11px] font-normal text-[#6b7684]">
                   {formatPostDate(post.createdAt, true)}
                   {post.editedAt && ' · 수정됨'}
                 </p>
@@ -327,13 +315,13 @@ export default function CommunityPostDetail({
             </div>
           </div>
 
-          {/* 2. 정보 상자 (구장·자리·가격 등, 가격은 보라색으로 강조) */}
+          {/* 2. 정보 목록 (구장·자리·가격 등, 사각형 배경 제거, 오른쪽 텍스트 굵기 하향, 응원분위기 라운드에 맞춘 좌우 마진) */}
           {infoRows.length > 0 && (
-            <div className="bg-[#f9fafb] rounded-2xl p-4 space-y-2">
+            <div className="space-y-2 py-0.5 px-2.5">
               {infoRows.map((row) => (
                 <div key={row.label} className="flex items-center justify-between gap-3">
                   <span className="text-[11px] font-bold text-[#8b95a1] shrink-0">{row.label}</span>
-                  <span className={`text-xs font-bold text-right ${row.label === '가격' ? 'text-brand' : 'text-[#191f28]'}`}>
+                  <span className={`text-xs font-semibold text-right ${row.label === '가격' ? 'text-brand' : 'text-[#191f28]'}`}>
                     {row.value}
                   </span>
                 </div>
@@ -341,18 +329,15 @@ export default function CommunityPostDetail({
             </div>
           )}
 
-          {/* 3. 한눈에 보기 (후기 도우미로 넣은 항목들) */}
+          {/* 3. 한눈에 보기 배지 (제목 텍스트 제외) */}
           {summary.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-bold text-[#4e5968]">한눈에 보기</p>
-              <div className="flex flex-wrap gap-1">
-                {summary.map((item) => (
-                  <span key={item.label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#f2f4f6] text-[11px]">
-                    <span className="font-semibold text-[#8b95a1]">{item.label}</span>
-                    <span className="font-bold text-[#333d4b]">{item.value}</span>
-                  </span>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-1">
+              {summary.map((item) => (
+                <span key={item.label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#f2f4f6] text-[11px]">
+                  <span className="font-semibold text-[#8b95a1]">{item.label}</span>
+                  <span className="font-bold text-[#333d4b]">{item.value}</span>
+                </span>
+              ))}
             </div>
           )}
 
@@ -409,24 +394,38 @@ export default function CommunityPostDetail({
             댓글 {commentCount}
           </p>
           {post.comments.length === 0 ? (
-            <p className="text-[11px] font-semibold text-[#8b95a1] text-center py-6">첫 댓글을 남겨보세요.</p>
+            <p className="text-[11px] font-normal text-[#6b7684] text-center py-6">첫 댓글을 남겨보세요.</p>
           ) : (
-            <ul className="space-y-3">
+            <ul className="divide-y divide-[#f2f4f6]">
               {rootComments.map((c) => {
                 const replies = repliesOf(c.id);
+                const isExpanded = expandedReplyIds.has(c.id);
                 return (
-                  <li key={c.id} className="space-y-2">
+                  <li key={c.id} className="py-3 first:pt-0 last:pb-0 space-y-1.5">
                     {renderComment(c)}
-                    {/* 답글: ↳ 화살표 + 들여쓰기 */}
+                    {/* 답글이 달린 경우: '답글 더보기' 버튼 제공 (답글 달기와 동일한 색상) */}
                     {replies.length > 0 && (
-                      <ul className="space-y-2">
-                        {replies.map((r) => (
-                          <li key={r.id} className="flex gap-1.5 pl-2">
-                            <CornerDownRight className="w-3.5 h-3.5 text-[#c4cad1] mt-3 shrink-0" />
-                            <div className="min-w-0 flex-1">{renderComment(r)}</div>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => toggleReplies(c.id)}
+                          className="flex items-center gap-1.5 text-[10px] font-semibold text-[#8b95a1] hover:text-brand cursor-pointer py-0.5 transition"
+                        >
+                          <CornerDownRight className="w-3.5 h-3.5 text-[#8b95a1] shrink-0" />
+                          <span>{isExpanded ? '답글 접기' : `답글 더보기 (${replies.length})`}</span>
+                        </button>
+
+                        {/* 답글 더보기를 누르면 답글 목록 노출 */}
+                        {isExpanded && (
+                          <ul className="space-y-2 pt-1.5 pl-3 border-l-2 border-[#f2f4f6] ml-1.5 mt-1">
+                            {replies.map((r) => (
+                              <li key={r.id}>
+                                {renderComment(r)}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                     )}
                   </li>
                 );
@@ -517,6 +516,62 @@ export default function CommunityPostDetail({
                 className="h-11 rounded-2xl bg-[#f04452] hover:bg-[#d93a47] text-white text-[13px] font-bold transition cursor-pointer"
               >
                 삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 내가 쓴 게시글 점 3개 옵션 바텀시트 */}
+      {isMenuOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-end justify-center select-none"
+          style={{ touchAction: 'none' }}
+        >
+          {/* 반투명 블랙 아웃포커스 배경막 */}
+          <div 
+            className="fixed inset-0 bg-[#191f28]/40 backdrop-blur-3xs transition-opacity duration-300 animate-fadeIn cursor-pointer" 
+            onClick={() => setIsMenuOpen(false)}
+          />
+          
+          {/* 슬라이드 업 바텀 플레이트 */}
+          <div 
+            id="post-detail-action-sheet" 
+            className="relative z-10 w-full max-w-md bg-white rounded-t-[32px] p-6 pb-8 shadow-[0_-10px_32px_rgba(0,0,0,0.12)] flex flex-col animate-sheetUp select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 상단 드래그 유도 바 핸들 */}
+            <div 
+              className="w-12 h-1.5 bg-[#e5e8eb] rounded-full mx-auto mb-4 cursor-pointer hover:bg-zinc-300 transition duration-150" 
+              onClick={() => setIsMenuOpen(false)}
+            />
+            
+            {/* 액션 버튼 목록 (수정하기 / 삭제하기) */}
+            <div className="space-y-1">
+              <button
+                id="btn-sheet-edit-post"
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  onEditPost();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left font-bold text-[13.5px] text-[#191f28] hover:bg-[#f2f4f6] active:bg-[#e5e8eb] transition cursor-pointer"
+              >
+                <Edit2 className="w-5 h-5 text-[#4e5968] stroke-[2.2] shrink-0" />
+                <span>수정하기</span>
+              </button>
+
+              <button
+                id="btn-sheet-delete-post"
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setDeleteTarget({ kind: 'post' });
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left font-bold text-[13.5px] text-[#f04452] hover:bg-rose-50/70 active:bg-rose-100 transition cursor-pointer"
+              >
+                <Trash2 className="w-5 h-5 text-[#f04452] stroke-[2.2] shrink-0" />
+                <span>삭제하기</span>
               </button>
             </div>
           </div>

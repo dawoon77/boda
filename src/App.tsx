@@ -404,7 +404,6 @@ export default function App() {
 
   const favoriteTeamObj = profile && profile.favoriteTeamId ? getTeamById(profile.favoriteTeamId) : null;
   const myFavoritePlayers = favoritePlayers.filter((p) => p.teamId === favoriteTeamObj?.id); // 현재 응원팀 선수만 골라내기 (응원팀을 바꾸면 이전 팀 선수는 화면에 안 보임)
-  const latestNotice = [...NOTICES].sort((a, b) => b.date.localeCompare(a.date))[0]; // 설정 화면 미리보기용 : 날짜가 가장 최근인 공지사항 1개
 
   return (
     <div className="min-h-screen bg-[#f2f4f6] flex items-center justify-center p-0 sm:p-4 md:p-6 text-[#191f28] font-sans selection:bg-brand/25 selection:text-[#191f28] relative overflow-hidden">
@@ -823,31 +822,7 @@ export default function App() {
                               </label>
                             </div>
 
-                            {/* 3. 공지사항 - 누르면 공지 목록으로 이동 */}
-                            <button
-                              id="settings-group-announcements"
-                              onClick={() => setMySubPage('notices')}
-                              className="w-full text-left space-y-2 pb-3.5 border-b border-[#f2f4f6] cursor-pointer group"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="space-y-0.5">
-                                  <span className="text-[13px] font-black text-[#191f28]">공지사항</span>
-                                  <p className="text-[10px] text-[#8b95a1] font-bold">새로운 소식 및 기능 정보</p>
-                                </div>
-                                <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:translate-x-0.5 transition-transform" />
-                              </div>
-                              {/* 최신 공지 1개 미리보기 (날짜가 가장 최근인 공지) */}
-                              {latestNotice && (
-                                <div className="bg-[#f9fafb] p-3.5 rounded-2xl border border-[#e5e8eb] space-y-1">
-                                  <p className="text-[11px] font-black text-[#333d4b]">📢 {latestNotice.title}</p>
-                                  <p className="text-[10px] text-[#4e5968] font-bold leading-normal line-clamp-2">
-                                    {latestNotice.content}
-                                  </p>
-                                </div>
-                              )}
-                            </button>
-
-                            {/* 4. 버전 정보 */}
+                            {/* 3. 버전 정보 */}
                             <div id="settings-group-version" className="flex items-center justify-between pt-1">
                               <div className="space-y-0.5">
                                 <span className="text-[13px] font-black text-[#191f28]">버전정보</span>

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Search, X, Pencil, Heart, MessageCircle, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, X, Plus, Heart, MessageCircle, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CommunityPost, CommunityCategory, CommunityPostInput, CommentReply } from '../types';
 import {
   CATEGORY_TABS,
@@ -289,8 +289,8 @@ export default function CommunityTab({
                               <MessageCircle className="w-3 h-3 shrink-0" />
                               {formatCount(post.comments.filter((c) => !c.isDeleted).length)}
                             </span>
-                            {/* 날짜는 좋아요·댓글과 구분되도록 세로선으로 나눔 */}
-                            <span className="ml-1 pl-1 border-l border-[#e5e8eb]">{formatPostDate(post.createdAt)}</span>
+                            {/* 날짜는 좋아요·댓글과 구분되도록 세로선으로 나눔 (조금 더 진한 색상) */}
+                            <span className="ml-1 pl-1 border-l border-[#e5e8eb] text-[#6b7684]">{formatPostDate(post.createdAt)}</span>
                           </span>
                         </div>
                       </div>
@@ -344,10 +344,10 @@ export default function CommunityTab({
       <button
         id="btn-community-write"
         onClick={() => setIsWriting(true)}
-        className="absolute bottom-5 right-5 z-10 w-12 h-12 bg-brand text-white shadow-md hover:bg-[#4314c4] active:scale-95 rounded-full flex items-center justify-center transition cursor-pointer"
+        className="absolute bottom-4 right-5 z-10 w-12 h-12 bg-brand text-white shadow-md hover:bg-[#4314c4] active:scale-95 rounded-full flex items-center justify-center transition-all duration-200 select-none cursor-pointer group"
         aria-label="글쓰기"
       >
-        <Pencil className="w-5 h-5 stroke-[2.5]" />
+        <Plus className="w-6 h-6 stroke-[2.5]" />
       </button>
 
       {/* 글 상세 (목록 위에 겹쳐서 표시) */}

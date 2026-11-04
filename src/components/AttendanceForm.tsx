@@ -528,10 +528,14 @@ export default function AttendanceForm({
 
   return (
     <div 
-      id="attendance-form-overlay" 
-      onScroll={handleOverlayScroll}
-      className="absolute inset-0 bg-white z-40 flex flex-col h-full overflow-y-auto text-[#191f28] sm:rounded-[36px]"
+      id="attendance-form-container"
+      className="absolute inset-0 bg-white z-40 flex flex-col h-full overflow-hidden text-[#191f28] sm:rounded-[36px]"
     >
+      <div 
+        id="attendance-form-overlay" 
+        onScroll={handleOverlayScroll}
+        className="flex-1 overflow-y-auto flex flex-col relative"
+      >
       
       {(() => {
         const hasDetailPhoto = !isEditing && imageUrls.length > 0;
@@ -567,7 +571,7 @@ export default function AttendanceForm({
                   <button
                     id="btn-detail-menu"
                     type="button"
-                    onClick={() => setIsMenuOpen(prev => !prev)}
+                    onClick={() => setIsMenuOpen(true)}
                     className={`p-2 transition cursor-pointer active:scale-90 ${
                       isScrolled 
                         ? 'text-[#191f28] hover:text-[#4e5968]' 
@@ -578,55 +582,6 @@ export default function AttendanceForm({
                   >
                     <MoreVertical className="w-5 h-5 stroke-[2.5]" />
                   </button>
-
-                  {isMenuOpen && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-40 cursor-default"
-                        onClick={() => setIsMenuOpen(false)}
-                      />
-                      <div className="absolute right-0 mt-2 w-28 bg-white border border-[#e5e8eb] rounded-2xl shadow-xl py-1.5 z-50 text-xs font-semibold animate-scaleUp select-none">
-                        <button
-                          id="btn-menu-edit"
-                          type="button"
-                          onClick={() => {
-                            setIsMenuOpen(false);
-                            setIsEditing(true);
-                          }}
-                          className="w-full text-left px-3.5 py-2 hover:bg-zinc-50 text-zinc-700 hover:text-zinc-900 flex items-center gap-2 cursor-pointer transition"
-                        >
-                          <Edit2 className="w-3.5 h-3.5 text-zinc-500" />
-                          <span>수정</span>
-                        </button>
-                        {onDelete && (
-                          <button
-                            id="btn-menu-delete"
-                            type="button"
-                            onClick={() => {
-                              setIsMenuOpen(false);
-                              onDelete(existingRecord?.id || '');
-                            }}
-                            className="w-full text-left px-3.5 py-2 hover:bg-rose-50 text-[#f04452] flex items-center gap-2 cursor-pointer transition border-t border-zinc-100"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 text-[#f04452]" />
-                            <span>삭제</span>
-                          </button>
-                        )}
-                        <button
-                          id="btn-menu-close"
-                          type="button"
-                          onClick={() => {
-                            setIsMenuOpen(false);
-                            onClose();
-                          }}
-                          className="w-full text-left px-3.5 py-2 hover:bg-zinc-50 text-zinc-650 hover:text-zinc-900 flex items-center gap-2 cursor-pointer transition border-t border-zinc-100"
-                        >
-                          <X className="w-3.5 h-3.5 text-zinc-500" />
-                          <span>닫기</span>
-                        </button>
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
 
@@ -732,62 +687,13 @@ export default function AttendanceForm({
                   <button
                     id="btn-detail-menu"
                     type="button"
-                    onClick={() => setIsMenuOpen(prev => !prev)}
+                    onClick={() => setIsMenuOpen(true)}
                     className="p-1.5 rounded-full hover:bg-zinc-100 text-[#8b95a1] hover:text-[#4e5968] transition cursor-pointer"
                     title="옵션 메뉴"
                     aria-label="옵션 메뉴"
                   >
                     <MoreVertical className="w-5 h-5" />
                   </button>
-
-                  {isMenuOpen && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-40 cursor-default"
-                        onClick={() => setIsMenuOpen(false)}
-                      />
-                      <div className="absolute right-0 mt-1.5 w-28 bg-white border border-[#e5e8eb] rounded-2xl shadow-xl py-1.5 z-50 text-xs font-semibold animate-scaleUp select-none">
-                        <button
-                          id="btn-menu-edit"
-                          type="button"
-                          onClick={() => {
-                            setIsMenuOpen(false);
-                            setIsEditing(true);
-                          }}
-                          className="w-full text-left px-3.5 py-2 hover:bg-zinc-50 text-zinc-700 hover:text-zinc-900 flex items-center gap-2 cursor-pointer transition"
-                        >
-                          <Edit2 className="w-3.5 h-3.5 text-zinc-500" />
-                          <span>수정</span>
-                        </button>
-                        {onDelete && (
-                          <button
-                            id="btn-menu-delete"
-                            type="button"
-                            onClick={() => {
-                              setIsMenuOpen(false);
-                              onDelete(existingRecord.id);
-                            }}
-                            className="w-full text-left px-3.5 py-2 hover:bg-rose-50 text-[#f04452] flex items-center gap-2 cursor-pointer transition border-t border-zinc-100"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 text-[#f04452]" />
-                            <span>삭제</span>
-                          </button>
-                        )}
-                        <button
-                          id="btn-menu-close"
-                          type="button"
-                          onClick={() => {
-                            setIsMenuOpen(false);
-                            onClose();
-                          }}
-                          className="w-full text-left px-3.5 py-2 hover:bg-zinc-50 text-zinc-650 hover:text-zinc-900 flex items-center gap-2 cursor-pointer transition border-t border-zinc-100"
-                        >
-                          <X className="w-3.5 h-3.5 text-zinc-500" />
-                          <span>닫기</span>
-                        </button>
-                      </div>
-                    </>
-                  )}
                 </div>
               )}
             </div>
@@ -1369,17 +1275,17 @@ export default function AttendanceForm({
             </div>
           )}
 
-          {/* 제출 액션 단락 */}
+          {/* 제출 액션 단락 (화면 하단 고정) */}
           {isEditing && (
-            <div className="pt-4">
+            <div className="sticky bottom-0 left-0 right-0 -mx-5 -mb-8 px-5 py-3.5 bg-white/95 backdrop-blur-md border-t border-zinc-100 z-20 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
               <button
                 id="btn-save-record"
                 type="submit"
-                className={BUTTONS.primary + " h-12 text-xs w-full"}
+                className={BUTTONS.primary + " h-12 text-xs w-full shadow-md cursor-pointer"}
               >
                 <Check className="w-4.5 h-4.5 stroke-[3]" />
                 <span>
-                  {existingRecord ? '수정 내용 저장 완료' : '직관 다이어리 등록 완료'}
+                  {existingRecord ? '수정 완료' : '작성 완료'}
                 </span>
               </button>
             </div>
@@ -1387,6 +1293,7 @@ export default function AttendanceForm({
 
         </form>
       </div>
+    </div>
 
       {/* 경기 일자 선택 달력 모달 */}
       {isDatePickerOpen && (
@@ -1760,6 +1667,61 @@ export default function AttendanceForm({
             </div>
           )}
         </div>
+      )}
+
+      {/* 6. 직관기록 상세보기 옵션 바텀시트 (수정 / 삭제 - 닫기 옵션 제거됨) */}
+      {isMenuOpen && (
+        <>
+          {/* 반투명 블랙 아웃포커스 배경막 */}
+          <div 
+            className="absolute inset-0 z-50 bg-[#191f28]/40 backdrop-blur-3xs transition-opacity duration-300 animate-fadeIn cursor-pointer" 
+            onClick={() => setIsMenuOpen(false)}
+          />
+          
+          {/* 슬라이드 업 바텀 플레이트 */}
+          <div 
+            id="attendance-detail-action-sheet" 
+            className="absolute bottom-0 left-0 right-0 z-50 bg-white rounded-t-[32px] p-6 pb-8 shadow-[0_-10px_32px_rgba(0,0,0,0.12)] flex flex-col animate-sheetUp select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 상단 드래그 유도 바 핸들 */}
+            <div 
+              className="w-12 h-1.5 bg-[#e5e8eb] rounded-full mx-auto mb-5 cursor-pointer hover:bg-zinc-300 transition duration-150" 
+              onClick={() => setIsMenuOpen(false)}
+            />
+            
+            {/* 액션 버튼 목록 (수정하기 / 삭제하기 - 원형 없음, 소제목 없음) */}
+            <div className="space-y-1">
+              <button
+                id="btn-sheet-edit"
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setIsEditing(true);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left font-bold text-[13.5px] text-[#191f28] hover:bg-[#f2f4f6] active:bg-[#e5e8eb] transition cursor-pointer"
+              >
+                <Edit2 className="w-5 h-5 text-[#4e5968] stroke-[2.2] shrink-0" />
+                <span>수정하기</span>
+              </button>
+
+              {onDelete && (
+                <button
+                  id="btn-sheet-delete"
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onDelete(existingRecord?.id || '');
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left font-bold text-[13.5px] text-[#f04452] hover:bg-rose-50/70 active:bg-rose-100 transition cursor-pointer"
+                >
+                  <Trash2 className="w-5 h-5 text-[#f04452] stroke-[2.2] shrink-0" />
+                  <span>삭제하기</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

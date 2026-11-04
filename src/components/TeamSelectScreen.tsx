@@ -37,8 +37,8 @@ export default function TeamSelectScreen({
 
   const activeTeam = KBO_TEAMS.find(t => t.id === selectedTeamId);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!nickname.trim()) {
       setErrorText('마이클럽에서 사용할 닉네임을 적어주세요.');
       return;
@@ -87,7 +87,14 @@ export default function TeamSelectScreen({
           </div>
           
           <div className="flex justify-end">
-            {/* 가로 대칭 정렬 빈 공간 스페이서 홀더 */}
+            <button
+              id="btn-apply-profile-edit"
+              type="button"
+              onClick={() => handleSubmit()}
+              className="text-sm font-bold text-brand hover:text-brand-hover px-2 py-1 rounded-lg transition cursor-pointer"
+            >
+              적용
+            </button>
           </div>
         </div>
       )}
@@ -105,19 +112,19 @@ export default function TeamSelectScreen({
 
       {/* 전체 기입 가로 스크롤 콘텐트 래퍼 */}
       <div id="team-select-wrapper" className={`flex-1 space-y-6 pb-6 ${isEditing ? 'pt-1' : 'pt-2'}`}>
-        <div id="setup-welcome-banner" className="space-y-2">
-          <span className={`${TYPOGRAPHY.badgeText} ${COLORS.brandLight}`}>
-            {isEditing ? '프로필 설정 변경' : '팬 프로필 등록'}
-          </span>
-          <h2 id="setup-title" className={TYPOGRAPHY.display}>
-            {isEditing ? '내 프로필 수정 ✏️' : '반가워요 👋\n구장 일지를 등록해 볼게요'}
-          </h2>
-          <p id="setup-subtitle" className={TYPOGRAPHY.bodyMedium}>
-            {isEditing 
-              ? '닉네임과 언제든 나의 마음을 함께할 최애 KBO 구단을 변경하실 수 있습니다.'
-              : '구장 일지 피드와 맛있는 먹거리 승률 분석에 필요한 프로필 설정을 최초 1회 입력해야 합니다.'}
-          </p>
-        </div>
+        {!isEditing && (
+          <div id="setup-welcome-banner" className="space-y-2">
+            <span className={`${TYPOGRAPHY.badgeText} ${COLORS.brandLight}`}>
+              팬 프로필 등록
+            </span>
+            <h2 id="setup-title" className={TYPOGRAPHY.display}>
+              {'반가워요 👋\n구장 일지를 등록해 볼게요'}
+            </h2>
+            <p id="setup-subtitle" className={TYPOGRAPHY.bodyMedium}>
+              {'구장 일지 피드와 맛있는 먹거리 승률 분석에 필요한 프로필 설정을 최초 1회 입력해야 합니다.'}
+            </p>
+          </div>
+        )}
 
         {/* 프로필 전용 입력 설정 폼 연동 */}
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -210,8 +217,8 @@ export default function TeamSelectScreen({
             </div>
           </div>
 
-          {/* 유저가 순위나 구단을 골랐을 때 매력적인 상호 작용 피드백 배너 */}
-          {activeTeam && (
+          {/* 유저가 순위나 구단을 골랐을 때 매력적인 상호 작용 피드백 배너 (수정 모드에서는 숨김) */}
+          {!isEditing && activeTeam && (
             <div id="selection-banner-preview" className={`${LAYOUT.card} !p-4.5 flex items-center gap-3.5 animate-fadeIn`}>
               <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-xs shrink-0" style={{ backgroundColor: `${activeTeam.primaryColor}22` }}>
                 {activeTeam.logoEmoji === 'ヒーロー' ? '🦸' : activeTeam.logoEmoji === '쌍둥이' ? '⚾' : activeTeam.logoEmoji}
@@ -236,15 +243,17 @@ export default function TeamSelectScreen({
             </div>
           )}
 
-          {/* 작성 제출 및 시작하기 버튼 */}
-          <button
-            id="btn-confirm-profile"
-            type="submit"
-            className={BUTTONS.primary}
-          >
-            <span>{isEditing ? '프로필 수정 완료 💾' : '프로필 등록 완료하고 시작하기'}</span>
-            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-          </button>
+          {/* 작성 제출 및 시작하기 버튼 (프로필 수정 시에는 상단 헤더 '적용' 버튼 사용) */}
+          {!isEditing && (
+            <button
+              id="btn-confirm-profile"
+              type="submit"
+              className={BUTTONS.primary}
+            >
+              <span>프로필 등록 완료하고 시작하기</span>
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+            </button>
+          )}
         </form>
       </div>
     </div>

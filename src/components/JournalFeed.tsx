@@ -33,8 +33,9 @@ export default function JournalFeed({ favoriteTeam, records, onViewRecord, onEdi
     return sorted.filter(r => r.date.startsWith(selectedYear));
   }, [records, selectedYear]);
 
-  // 점 세개 메뉴 목록 드롭다운 보기 활성화
+  // 점 세개 메뉴 목록 바텀시트 보기 활성화
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const selectedRecordForMenu = activeMenuId ? records.find(r => r.id === activeMenuId) : null;
 
   if (records.length === 0) {
     return (
@@ -112,53 +113,13 @@ export default function JournalFeed({ favoriteTeam, records, onViewRecord, onEdi
                           id={`btn-menu-ticket-${record.id}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            setActiveMenuId(activeMenuId === record.id ? null : record.id);
+                            setActiveMenuId(record.id);
                           }}
                           className="p-1.5 rounded-full hover:bg-zinc-100 text-[#8b95a1] hover:text-[#4e5968] transition cursor-pointer"
                           title="기록 옵션"
                         >
                           <MoreVertical className="w-5 h-5" />
                         </button>
-                        
-                        {activeMenuId === record.id && (
-                          <>
-                            {/* 영역 외부를 탭했을 때 드롭다운을 닫아주기 위한 불투명 백그라운드 오버레이 */}
-                            <div 
-                              className="fixed inset-0 z-30 cursor-default" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveMenuId(null);
-                              }}
-                            />
-                            {/* 옵션 메뉴 드롭다운 */}
-                            <div className="absolute right-0 mt-1.5 w-24 bg-white border border-zinc-200 rounded-2xl shadow-lg py-1.5 z-40 text-xs font-semibold">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveMenuId(null);
-                                  onEditRecord(record);
-                                }}
-                                className="w-full text-left px-3 py-1.5 hover:bg-zinc-50 text-zinc-700 hover:text-zinc-900 flex items-center gap-1.5 cursor-pointer"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                                <span>수정</span>
-                              </button>
-                              {onDeleteRecord && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setActiveMenuId(null);
-                                    onDeleteRecord(record.id);
-                                  }}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-red-50 text-red-600 flex items-center gap-1.5 cursor-pointer border-t border-zinc-100"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                  <span>삭제</span>
-                                </button>
-                              )}
-                            </div>
-                          </>
-                        )}
                       </div>
                     </div>
 
@@ -311,6 +272,68 @@ export default function JournalFeed({ favoriteTeam, records, onViewRecord, onEdi
             </div>
           );
         })}
+        </div>
+      )}
+
+      {/* 나의 직관 티켓북 점 3개 아이콘 바텀시트 (원형 없음, 소제목 없음) */}
+      {selectedRecordForMenu && (
+        <div 
+          className="fixed inset-0 z-50 flex items-end justify-center select-none"
+          style={{ touchAction: 'none' }}
+        >
+          {/* 반투명 블랙 아웃포커스 배경막 */}
+          <div 
+            className="fixed inset-0 bg-[#191f28]/40 backdrop-blur-3xs transition-opacity duration-300 animate-fadeIn cursor-pointer" 
+            onClick={() => setActiveMenuId(null)}
+          />
+          
+          {/* 슬라이드 업 바텀 플레이트 */}
+          <div 
+            id="ticket-detail-action-sheet" 
+            className="relative z-10 w-full max-w-md bg-white rounded-t-[32px] p-6 pb-8 shadow-[0_-10px_32px_rgba(0,0,0,0.12)] flex flex-col animate-sheetUp select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 상단 드래그 유도 바 핸들 */}
+            <div 
+              className="w-12 h-1.5 bg-[#e5e8eb] rounded-full mx-auto mb-4 cursor-pointer hover:bg-zinc-300 transition duration-150" 
+              onClick={() => setActiveMenuId(null)}
+            />
+            
+            {/* 액션 버튼 목록 (수정하기 / 삭제하기 - 원형 없음, 소제목 없음) */}
+            <div className="space-y-1">
+              <button
+                id="btn-sheet-edit-feed"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const rec = selectedRecordForMenu;
+                  setActiveMenuId(null);
+                  if (rec) onEditRecord(rec);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left font-bold text-[13.5px] text-[#191f28] hover:bg-[#f2f4f6] active:bg-[#e5e8eb] transition cursor-pointer"
+              >
+                <Edit2 className="w-5 h-5 text-[#4e5968] stroke-[2.2] shrink-0" />
+                <span>수정하기</span>
+              </button>
+
+              {onDeleteRecord && (
+                <button
+                  id="btn-sheet-delete-feed"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const recId = selectedRecordForMenu.id;
+                    setActiveMenuId(null);
+                    onDeleteRecord(recId);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left font-bold text-[13.5px] text-[#f04452] hover:bg-rose-50/70 active:bg-rose-100 transition cursor-pointer"
+                >
+                  <Trash2 className="w-5 h-5 text-[#f04452] stroke-[2.2] shrink-0" />
+                  <span>삭제하기</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

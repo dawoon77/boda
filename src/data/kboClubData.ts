@@ -426,3 +426,123 @@ export const TEAM_STORE_LINKS: Record<string, TeamStoreLink[]> = {
   ]
 };
 
+export interface TeamHomepageLink {
+  title: string;
+  url: string;
+  description: string;
+}
+
+export const TEAM_HOMEPAGE_LINKS: Record<string, TeamHomepageLink> = {
+  lg: {
+    title: 'LG 트윈스 공식 홈페이지',
+    url: 'https://www.lgtwins.com/',
+    description: '구단 소식, 경기 일정 및 결과, 티켓 예매, 선수단 정보'
+  },
+  doosan: {
+    title: '두산 베어스 공식 홈페이지',
+    url: 'https://www.doosanbears.com/',
+    description: '구단 소식, 경기 일정 및 결과, 티켓 예매, 선수단 정보'
+  },
+  kia: {
+    title: 'KIA 타이거즈 공식 홈페이지',
+    url: 'https://tigers.co.kr/',
+    description: '구단 소식, 경기 일정 및 결과, 티켓 예매, 선수단 정보'
+  },
+  samsung: {
+    title: '삼성 라이온즈 공식 홈페이지',
+    url: 'https://www.samsunglions.com/index.asp',
+    description: '구단 소식, 경기 일정 및 결과, 티켓 예매, 선수단 정보'
+  },
+  lotte: {
+    title: '롯데 자이언츠 공식 홈페이지',
+    url: 'https://www.giantsclub.com/html/',
+    description: '구단 소식, 경기 일정 및 결과, 티켓 예매, 선수단 정보'
+  },
+  ssg: {
+    title: 'SSG 랜더스 공식 홈페이지',
+    url: 'https://www.ssglanders.com/main',
+    description: '구단 소식, 경기 일정 및 결과, 티켓 예매, 선수단 정보'
+  },
+  kiwoom: {
+    title: '키움 히어로즈 공식 홈페이지',
+    url: 'https://heroesbaseball.co.kr/index.do',
+    description: '구단 소식, 경기 일정 및 결과, 티켓 예매, 선수단 정보'
+  },
+  nc: {
+    title: 'NC 다이노스 공식 홈페이지',
+    url: 'https://www.ncdinos.com/homepage.do',
+    description: '구단 소식, 경기 일정 및 결과, 티켓 예매, 선수단 정보'
+  },
+  hanwha: {
+    title: '한화 이글스 공식 홈페이지',
+    url: 'https://www.hanwhaeagles.co.kr/index.do',
+    description: '구단 소식, 경기 일정 및 결과, 티켓 예매, 선수단 정보'
+  },
+  kt: {
+    title: 'KT 위즈 공식 홈페이지',
+    url: 'https://www.ktwiz.co.kr/sports/site/baseball/main.do',
+    description: '구단 소식, 경기 일정 및 결과, 티켓 예매, 선수단 정보'
+  }
+};
+
+export interface TeamYoutubeLink {
+  title: string;
+  url: string;
+  description: string;
+}
+
+export const TEAM_YOUTUBE_LINKS: Record<string, TeamYoutubeLink> = {
+  lg: {
+    title: 'LG 트윈스 공식 유튜브',
+    url: 'https://www.youtube.com/@LGTwinsTV',
+    description: '구단 영상, 경기 하이라이트, 덕아웃캠, 선수단 비하인드'
+  },
+  doosan: {
+    title: '두산 베어스 공식 유튜브',
+    url: 'https://www.youtube.com/@bearstv1982',
+    description: '구단 영상, 경기 하이라이트, 덕아웃캠, 선수단 비하인드'
+  },
+  kia: {
+    title: 'KIA 타이거즈 공식 유튜브',
+    url: 'https://www.youtube.com/@kiatigerstv',
+    description: '구단 영상, 경기 하이라이트, 덕아웃캠, 선수단 비하인드'
+  },
+  samsung: {
+    title: '삼성 라이온즈 공식 유튜브',
+    url: 'https://www.youtube.com/@lionstv1982',
+    description: '구단 영상, 경기 하이라이트, 덕아웃캠, 선수단 비하인드'
+  },
+  lotte: {
+    title: '롯데 자이언츠 공식 유튜브',
+    url: 'https://www.youtube.com/@giantstv',
+    description: '구단 영상, 경기 하이라이트, 덕아웃캠, 선수단 비하인드'
+  },
+  ssg: {
+    title: 'SSG 랜더스 공식 유튜브',
+    url: 'https://www.youtube.com/@SSGLANDERS',
+    description: '구단 영상, 경기 하이라이트, 덕아웃캠, 선수단 비하인드'
+  },
+  kiwoom: {
+    title: '키움 히어로즈 공식 유튜브',
+    url: 'https://www.youtube.com/@heroesbaseballclub',
+    description: '구단 영상, 경기 하이라이트, 덕아웃캠, 선수단 비하인드'
+  },
+  nc: {
+    title: 'NC 다이노스 공식 유튜브',
+    url: 'https://www.youtube.com/@ncdinos',
+    description: '구단 영상, 경기 하이라이트, 덕아웃캠, 선수단 비하인드'
+  },
+  hanwha: {
+    title: '한화 이글스 공식 유튜브',
+    url: 'https://www.youtube.com/@HanwhaEagles_official',
+    description: '구단 영상, 경기 하이라이트, 덕아웃캠, 선수단 비하인드'
+  },
+  kt: {
+    title: 'KT 위즈 공식 유튜브',
+    url: 'https://www.youtube.com/@ktwiztv',
+    description: '구단 영상, 경기 하이라이트, 덕아웃캠, 선수단 비하인드'
+  }
+};
+
+
+

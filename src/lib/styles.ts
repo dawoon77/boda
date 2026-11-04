@@ -89,7 +89,7 @@ export const LAYOUT = {
   
   // 입력 필드 (정갈한 회색 배경, 포커스 시 테두리와 배경색 변화)
   input: `w-full bg-[#f2f4f6] focus:bg-white border border-transparent focus:border-brand font-semibold rounded-2xl px-4 py-3 ${FONT_SIZES.body} text-[#191f28] focus:outline-none transition-all`,
-  textarea: `w-full bg-[#f2f4f6] focus:bg-white border border-transparent focus:border-brand rounded-2xl px-4 py-3.5 ${FONT_SIZES.body} text-[#191f28] focus:outline-none transition-all resize-none leading-relaxed font-semibold`,
+  textarea: `w-full bg-[#f2f4f6] focus:bg-white border border-transparent focus:border-brand rounded-2xl px-4 py-3.5 ${FONT_SIZES.body} text-[#191f28] focus:outline-none transition-all resize-none leading-relaxed font-medium`,
 };
 
 // 5. 공통 UI 및 통계 리포트 관련 텍스트 상수

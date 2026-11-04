@@ -246,7 +246,7 @@ export default function MyProfileTab({ profile, records, yearlyGoal, onChangeGoa
           >
             <span className="flex items-center gap-3">
               <Icon className="w-5 h-5 text-zinc-500" />
-              <span className="text-[13px] font-bold text-[#191f28]">{label}</span>
+              <span className="text-[13px] font-semibold text-[#191f28]">{label}</span>
             </span>
             <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:translate-x-0.5 transition-transform" />
           </button>

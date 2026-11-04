@@ -16,12 +16,28 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  const PORT = Number(process.env.PORT) || 3000;
+  const getPort = (): number => {
+    if (process.env.NODE_ENV === "production") {
+      return Number(process.env.PORT) || 3000;
+    }
+    const portArgIdx = process.argv.indexOf("--port");
+    if (portArgIdx !== -1 && process.argv[portArgIdx + 1]) {
+      const parsed = parseInt(process.argv[portArgIdx + 1], 10);
+      if (!isNaN(parsed)) return parsed;
+    }
+    return 3000;
+  };
+
+  const PORT = getPort();
 
   app.use(express.json());
 
-  // MySQL 설정이 되어 있다면 데이터베이스 테이블 초기화
-  await initializeDatabase();
+  // MySQL 설정이 되어 있다면 데이터베이스 테이블 초기화 (오류 발생 시 인메모리 폴백으로 안전하게 지속)
+  try {
+    await initializeDatabase();
+  } catch (dbErr) {
+    console.warn("DB initialization skipped or failed, using in-memory mode:", dbErr);
+  }
 
   // 메모리 캐시
   let rankingsCache: any = null;
@@ -569,8 +585,12 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
+  });
+
+  server.on("error", (err: any) => {
+    console.error(`Dev server listen error on port ${PORT}:`, err);
   });
 }
 
