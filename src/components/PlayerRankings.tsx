@@ -428,10 +428,8 @@ export default function PlayerRankings({ favoriteTeam }: { favoriteTeam: KBOTeam
                       </span>
 
                       {/* 소속 구단 마크 원 */}
-                      <div className="w-6 h-6 rounded-full bg-[#f2f4f6] flex items-center justify-center shrink-0 border border-transparent shadow-xs" title={team?.name}>
-                        <span className="text-sm">
-                          {team?.logoEmoji === 'ヒーロー' ? '🦸' : team?.logoEmoji === '쌍둥이' ? '⚾' : team?.logoEmoji || '⚾'}
-                        </span>
+                      <div className="w-6 h-6 rounded-full bg-[#f2f4f6] flex items-center justify-center shrink-0 border border-transparent shadow-xs overflow-hidden p-0.5" title={team?.name}>
+                        <img src={team?.logoUrl} alt={team?.shortName} className="w-full h-full object-contain" />
                       </div>
 
                       {/* 이름 및 소속 구단 약어 뱃지 */}
@@ -520,8 +518,8 @@ export default function PlayerRankings({ favoriteTeam }: { favoriteTeam: KBOTeam
             <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6 scrollbar-thin">
               {/* Leader Highlight Banner */}
               <div className="bg-brand-light rounded-3xl p-5 border border-transparent flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-3xl shadow-sm shrink-0">
-                  {leaderTeam?.logoEmoji === 'ヒーロー' ? '🦸' : leaderTeam?.logoEmoji === '쌍둥이' ? '⚾' : leaderTeam?.logoEmoji || '⚾'}
+                <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-sm shrink-0 overflow-hidden p-2">
+                  <img src={leaderTeam?.logoUrl} alt={leaderTeam?.name} className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <span className="text-[10px] font-bold text-brand uppercase tracking-wide">SEASON LEADER 👑</span>
@@ -563,10 +561,8 @@ export default function PlayerRankings({ favoriteTeam }: { favoriteTeam: KBOTeam
                           </div>
 
                           {/* Team Emoji circle */}
-                          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-[#e5e8eb] shadow-3xs shrink-0">
-                            <span className="text-lg">
-                              {team?.logoEmoji === 'ヒーロー' ? '🦸' : team?.logoEmoji === '쌍둥이' ? '⚾' : team?.logoEmoji || '⚾'}
-                            </span>
+                          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-[#e5e8eb] shadow-3xs shrink-0 overflow-hidden p-1">
+                            <img src={team?.logoUrl} alt={team?.shortName} className="w-full h-full object-contain" />
                           </div>
 
                           {/* Name & Stamp badge */}

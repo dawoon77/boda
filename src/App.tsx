@@ -1090,7 +1090,8 @@ export default function App() {
                                   : 'hover:bg-[#f2f4f6] text-[#4e5968] font-bold'
                               }`}
                             >
-                              <div className="flex items-center">
+                              <div className="flex items-center gap-2.5">
+                                <img src={team.logoUrl} alt={team.name} className="w-6 h-6 object-contain shrink-0 drop-shadow-2xs" />
                                 <span className="text-[12px] tracking-tight font-extrabold">{team.name}</span>
                               </div>
                               {isCurrent && (

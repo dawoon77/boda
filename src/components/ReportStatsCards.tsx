@@ -437,8 +437,8 @@ export function OpponentWinRateCard({
           return (
             <div key={`opp-stat-${opp.id}`} className="space-y-1 text-[11px]">
               <div className={`flex justify-between ${TYPOGRAPHY.bodyBold}`}>
-                <span className="text-[#4e5968] flex items-center gap-1">
-                  <span>{opp.logoEmoji === 'ヒーロー' ? '🦸' : opp.logoEmoji === '쌍둥이' ? '⚾' : opp.logoEmoji}</span>
+                <span className="text-[#4e5968] flex items-center gap-1.5">
+                  <img src={opp.logoUrl} alt={opp.shortName} className="w-4 h-4 object-contain shrink-0" />
                   <span>{opp.shortName}전</span>
                 </span>
                 <span className={`text-[#8b95a1] font-mono ${TYPOGRAPHY.captionMuted}`}>

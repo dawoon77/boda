@@ -161,9 +161,11 @@ export default function MatchCalendar({
           {hasMatch ? (
             <div className="flex flex-col items-center text-center">
               {/* 상대 구단 엠블럼 */}
-              <span className={`text-sm ${isLoss ? 'grayscale opacity-60' : ''}`}>
-                {getTeamById(match.homeTeamId === favoriteTeam.id ? match.awayTeamId : match.homeTeamId).logoEmoji}
-              </span>
+              <img
+                src={getTeamById(match.homeTeamId === favoriteTeam.id ? match.awayTeamId : match.homeTeamId).logoUrl}
+                alt=""
+                className={`w-5 h-5 object-contain ${isLoss ? 'grayscale opacity-60' : ''}`}
+              />
               
               {/* 상대 경기 설명 */}
               <span className={`text-[8px] font-bold tracking-tighter mt-0.5 truncate max-w-[48px] ${

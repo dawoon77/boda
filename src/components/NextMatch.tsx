@@ -143,9 +143,7 @@ export default function NextMatch({ favoriteTeam, matches, onAttendanceClick, ha
               {/* Away Team */}
               <div className="flex flex-col items-center flex-1">
                 <div className="w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-bold text-sm italic text-white shadow-sm relative overflow-hidden border border-black/5" style={{ backgroundColor: getTeamById(liveMatch.awayTeamId).primaryColor }}>
-                  <span className="text-xl leading-none">
-                    {getTeamById(liveMatch.awayTeamId).logoEmoji === 'ヒーロー' ? '🦸' : getTeamById(liveMatch.awayTeamId).logoEmoji === '쌍둥이' ? '⚾' : getTeamById(liveMatch.awayTeamId).logoEmoji}
-                  </span>
+                  <img src={getTeamById(liveMatch.awayTeamId).logoUrl} alt="" className="w-8 h-8 object-contain drop-shadow-xs -mt-1.5" />
                   <span className="text-[7.5px] font-bold absolute bottom-0.5 tracking-tighter text-white/85">{liveMatch.awayTeamId.toUpperCase()}</span>
                 </div>
                 <span className="text-xs font-bold text-zinc-800 mt-1.5">{getTeamById(liveMatch.awayTeamId).shortName}</span>
@@ -168,9 +166,7 @@ export default function NextMatch({ favoriteTeam, matches, onAttendanceClick, ha
               {/* Home Team */}
               <div className="flex flex-col items-center flex-1">
                 <div className="w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-bold text-sm italic text-white shadow-sm relative overflow-hidden border border-black/5" style={{ backgroundColor: getTeamById(liveMatch.homeTeamId).primaryColor }}>
-                  <span className="text-xl leading-none">
-                    {getTeamById(liveMatch.homeTeamId).logoEmoji === 'ヒーロー' ? '🦸' : getTeamById(liveMatch.homeTeamId).logoEmoji === '쌍둥이' ? '⚾' : getTeamById(liveMatch.homeTeamId).logoEmoji}
-                  </span>
+                  <img src={getTeamById(liveMatch.homeTeamId).logoUrl} alt="" className="w-8 h-8 object-contain drop-shadow-xs -mt-1.5" />
                   <span className="text-[7.5px] font-bold absolute bottom-0.5 tracking-tighter text-white/85">{liveMatch.homeTeamId.toUpperCase()}</span>
                 </div>
                 <span className="text-xs font-bold text-zinc-800 mt-1.5">{getTeamById(liveMatch.homeTeamId).shortName}</span>
@@ -363,9 +359,7 @@ export default function NextMatch({ favoriteTeam, matches, onAttendanceClick, ha
               {/* Away Team */}
               <div className="flex flex-col items-center flex-1">
                 <div className="w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-bold text-sm italic text-white shadow-sm relative overflow-hidden border border-black/5" style={{ backgroundColor: getTeamById(choiceUpcoming.awayTeamId).primaryColor }}>
-                  <span className="text-xl leading-none">
-                    {getTeamById(choiceUpcoming.awayTeamId).logoEmoji === 'ヒーロー' ? '🦸' : getTeamById(choiceUpcoming.awayTeamId).logoEmoji === '쌍둥이' ? '⚾' : getTeamById(choiceUpcoming.awayTeamId).logoEmoji}
-                  </span>
+                  <img src={getTeamById(choiceUpcoming.awayTeamId).logoUrl} alt="" className="w-8 h-8 object-contain drop-shadow-xs -mt-1.5" />
                   <span className="text-[7.5px] font-bold absolute bottom-0.5 tracking-tighter text-white/85">{choiceUpcoming.awayTeamId.toUpperCase()}</span>
                 </div>
                 <span className="text-xs font-bold text-zinc-800 mt-1.5">{getTeamById(choiceUpcoming.awayTeamId).shortName}</span>
@@ -393,9 +387,7 @@ export default function NextMatch({ favoriteTeam, matches, onAttendanceClick, ha
               {/* Home Team */}
               <div className="flex flex-col items-center flex-1">
                 <div className="w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-bold text-sm italic text-white shadow-sm relative overflow-hidden border border-black/5" style={{ backgroundColor: getTeamById(choiceUpcoming.homeTeamId).primaryColor }}>
-                  <span className="text-xl leading-none">
-                    {getTeamById(choiceUpcoming.homeTeamId).logoEmoji === 'ヒーロー' ? '🦸' : getTeamById(choiceUpcoming.homeTeamId).logoEmoji === '쌍둥이' ? '⚾' : getTeamById(choiceUpcoming.homeTeamId).logoEmoji}
-                  </span>
+                  <img src={getTeamById(choiceUpcoming.homeTeamId).logoUrl} alt="" className="w-8 h-8 object-contain drop-shadow-xs -mt-1.5" />
                   <span className="text-[7.5px] font-bold absolute bottom-0.5 tracking-tighter text-white/85">{choiceUpcoming.homeTeamId.toUpperCase()}</span>
                 </div>
                 <span className="text-xs font-bold text-zinc-800 mt-1.5">{getTeamById(choiceUpcoming.homeTeamId).shortName}</span>

@@ -812,7 +812,7 @@ export default function AttendanceForm({
                 </div>
                 {isLocked ? (
                   <div className={`${LAYOUT.input} !border-zinc-200 bg-[#f8f9fa] text-zinc-700 flex items-center gap-2 font-medium text-xs select-none`}>
-                    <span>{oppTeamObj.logoEmoji === 'ヒーロー' ? '🦸' : oppTeamObj.logoEmoji === '쌍둥이' ? '⚾' : oppTeamObj.logoEmoji}</span>
+                    <img src={oppTeamObj.logoUrl} alt={oppTeamObj.name} className="w-5 h-5 object-contain shrink-0" />
                     <span>{oppTeamObj.name}</span>
                   </div>
                 ) : (
@@ -837,7 +837,7 @@ export default function AttendanceForm({
                           }`}
                           style={isSelected ? { backgroundColor: t.primaryColor } : {}}
                         >
-                          <span>{t.logoEmoji === 'ヒーロー' ? '🦸' : t.logoEmoji === '쌍둥이' ? '⚾' : t.logoEmoji}</span>
+                          <img src={t.logoUrl} alt={t.shortName} className="w-4.5 h-4.5 object-contain shrink-0" />
                           <span>{t.shortName}</span>
                         </button>
                       );

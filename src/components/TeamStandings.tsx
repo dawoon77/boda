@@ -81,9 +81,7 @@ export default function TeamStandings({ favoriteTeam, onlyMyTeam = false }: Team
         
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-3">
-            <span className="text-4xl">
-              {matchedTeam.logoEmoji === 'ヒーロー' ? '🦸' : matchedTeam.logoEmoji === '쌍둥이' ? '⚾' : matchedTeam.logoEmoji}
-            </span>
+            <img src={matchedTeam.logoUrl} alt={matchedTeam.name} className="w-10 h-10 object-contain drop-shadow-xs shrink-0" />
             <div>
               <p className={`text-[14px] font-bold leading-tight mb-1 ${COLORS.textMain}`}>
                 {matchedTeam.name}
@@ -161,9 +159,7 @@ export default function TeamStandings({ favoriteTeam, onlyMyTeam = false }: Team
                     )}
                   </td>
                   <td className="py-2.5 flex items-center gap-1.5 min-w-[75px]">
-                    <span className="text-base shrink-0">
-                      {matchedTeam?.logoEmoji === 'ヒーロー' ? '🦸' : matchedTeam?.logoEmoji === '쌍둥이' ? '⚾' : matchedTeam?.logoEmoji}
-                    </span>
+                    <img src={matchedTeam?.logoUrl} alt={matchedTeam?.shortName} className="w-5 h-5 object-contain shrink-0 drop-shadow-2xs" />
                     <span className="truncate tracking-tight font-bold">
                       {matchedTeam?.shortName}
                     </span>

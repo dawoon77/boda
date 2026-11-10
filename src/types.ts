@@ -9,6 +9,7 @@ export interface KBOTeam {
   stadium: string;
   mascot: string;
   logoEmoji: string;
+  logoUrl: string;
   city: string;
 }
 

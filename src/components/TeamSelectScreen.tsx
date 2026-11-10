@@ -190,7 +190,7 @@ export default function TeamSelectScreen({
                     }
                   >
                     <div className="flex items-center justify-between w-full mb-1.5">
-                      <span className="text-2xl">{team.logoEmoji === 'ヒーロー' ? '🦸' : team.logoEmoji === '쌍둥이' ? '⚾' : team.logoEmoji}</span>
+                      <img src={team.logoUrl} alt={team.name} className="w-8 h-8 object-contain drop-shadow-xs" />
                       {isSelected ? (
                         <div className="w-5 h-5 bg-white text-[#191f28] rounded-full flex items-center justify-center scale-90 shadow-xs">
                           <Check className="w-3.5 h-3.5 stroke-[3.5]" style={{ color: team.primaryColor }} />
@@ -220,8 +220,8 @@ export default function TeamSelectScreen({
           {/* 유저가 순위나 구단을 골랐을 때 매력적인 상호 작용 피드백 배너 (수정 모드에서는 숨김) */}
           {!isEditing && activeTeam && (
             <div id="selection-banner-preview" className={`${LAYOUT.card} !p-4.5 flex items-center gap-3.5 animate-fadeIn`}>
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-xs shrink-0" style={{ backgroundColor: `${activeTeam.primaryColor}22` }}>
-                {activeTeam.logoEmoji === 'ヒーロー' ? '🦸' : activeTeam.logoEmoji === '쌍둥이' ? '⚾' : activeTeam.logoEmoji}
+              <div className="w-12 h-12 rounded-full flex items-center justify-center p-1 shadow-xs shrink-0" style={{ backgroundColor: `${activeTeam.primaryColor}22` }}>
+                <img src={activeTeam.logoUrl} alt={activeTeam.name} className="w-10 h-10 object-contain drop-shadow-xs" />
               </div>
               <div className="flex-1 min-w-0 text-xs">
                 <p className="text-[10px] text-brand font-bold leading-none mb-1 uppercase tracking-tight">선택 완료</p>

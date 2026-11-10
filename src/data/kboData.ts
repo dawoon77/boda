@@ -11,7 +11,8 @@ export const KBO_TEAMS: KBOTeam[] = [
     textColor: '#FFFFFF',
     stadium: '광주-기아 챔피언스 필드',
     mascot: '호걸이',
-    logoEmoji: '🐯',
+    logoEmoji: '/assets/teams/kia.png',
+    logoUrl: '/assets/teams/kia.png',
     city: '광주'
   },
   {
@@ -24,7 +25,8 @@ export const KBO_TEAMS: KBOTeam[] = [
     textColor: '#FFFFFF',
     stadium: '대구 삼성 라이온즈 파크',
     mascot: '블레오',
-    logoEmoji: '🦁',
+    logoEmoji: '/assets/teams/samsung.png',
+    logoUrl: '/assets/teams/samsung.png',
     city: '대구'
   },
   {
@@ -37,7 +39,8 @@ export const KBO_TEAMS: KBOTeam[] = [
     textColor: '#FFFFFF',
     stadium: '서울 잠실 야구장',
     mascot: '럭키/스타',
-    logoEmoji: '🧑‍🤝‍🧑',
+    logoEmoji: '/assets/teams/lg.png',
+    logoUrl: '/assets/teams/lg.png',
     city: '서울'
   },
   {
@@ -50,7 +53,8 @@ export const KBO_TEAMS: KBOTeam[] = [
     textColor: '#FFFFFF',
     stadium: '서울 잠실 야구장',
     mascot: '철웅이',
-    logoEmoji: '🐻',
+    logoEmoji: '/assets/teams/doosan.png',
+    logoUrl: '/assets/teams/doosan.png',
     city: '서울'
   },
   {
@@ -63,7 +67,8 @@ export const KBO_TEAMS: KBOTeam[] = [
     textColor: '#FFFFFF',
     stadium: '수원 kt 위즈 파크',
     mascot: '빅/또리',
-    logoEmoji: '🧙',
+    logoEmoji: '/assets/teams/kt.png',
+    logoUrl: '/assets/teams/kt.png',
     city: '수원'
   },
   {
@@ -76,7 +81,8 @@ export const KBO_TEAMS: KBOTeam[] = [
     textColor: '#FFFFFF',
     stadium: '인천 SSG 랜더스필드',
     mascot: '랜디',
-    logoEmoji: '🐶',
+    logoEmoji: '/assets/teams/ssg.png',
+    logoUrl: '/assets/teams/ssg.png',
     city: '인천'
   },
   {
@@ -89,7 +95,8 @@ export const KBO_TEAMS: KBOTeam[] = [
     textColor: '#FFFFFF',
     stadium: '부산 사직 야구장',
     mascot: '누리/피니',
-    logoEmoji: '🦤',
+    logoEmoji: '/assets/teams/lotte.png',
+    logoUrl: '/assets/teams/lotte.png',
     city: '부산'
   },
   {
@@ -102,7 +109,8 @@ export const KBO_TEAMS: KBOTeam[] = [
     textColor: '#FFFFFF',
     stadium: '대전 한화생명 이글스파크',
     mascot: '수리',
-    logoEmoji: '🦅',
+    logoEmoji: '/assets/teams/hanwha.png',
+    logoUrl: '/assets/teams/hanwha.png',
     city: '대전'
   },
   {
@@ -115,7 +123,8 @@ export const KBO_TEAMS: KBOTeam[] = [
     textColor: '#FFFFFF',
     stadium: '창원 NC 파크',
     mascot: '단디/쎄리',
-    logoEmoji: '🦕',
+    logoEmoji: '/assets/teams/nc.png',
+    logoUrl: '/assets/teams/nc.png',
     city: '창원'
   },
   {
@@ -128,7 +137,8 @@ export const KBO_TEAMS: KBOTeam[] = [
     textColor: '#FFFFFF',
     stadium: '서울 고척 스카이돔',
     mascot: '턱돌이/동글이',
-    logoEmoji: '🤖',
+    logoEmoji: '/assets/teams/kiwoom.png',
+    logoUrl: '/assets/teams/kiwoom.png',
     city: '서울'
   }
 ];

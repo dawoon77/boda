@@ -86,10 +86,14 @@ export default function MyProfileTab({ profile, records, yearlyGoal, onChangeGoa
         <div className="flex items-center gap-3.5 border-b border-zinc-100 pb-4 justify-between">
           <div className="flex items-center gap-3.5 min-w-0 flex-1">
             <div
-              className="w-14 h-14 rounded-full flex items-center justify-center text-3xl border border-zinc-100 shadow-sm shrink-0"
+              className="w-14 h-14 rounded-full flex items-center justify-center p-1.5 border border-zinc-100 shadow-sm shrink-0 overflow-hidden"
               style={{ backgroundColor: favoriteTeamObj?.primaryColor }}
             >
-              {favoriteTeamObj?.logoEmoji === 'ヒーロー' ? '🦸' : favoriteTeamObj?.logoEmoji === '쌍둥이' ? '⚾' : favoriteTeamObj?.logoEmoji}
+              {favoriteTeamObj?.logoUrl ? (
+                <img src={favoriteTeamObj.logoUrl} alt={favoriteTeamObj.name} className="w-full h-full object-contain drop-shadow-xs" />
+              ) : (
+                <span className="text-3xl">⚾</span>
+              )}
             </div>
    
             <div className="min-w-0 flex-1">
